@@ -42,6 +42,10 @@ jobs:
             apt-get update
             apt-get install -y --no-install-recommends live-build ca-certificates
             lb config
+            # Start-up menu: continue automatically after 5 seconds
+            mkdir -p config/bootloaders
+            cp -r /usr/share/live/build/bootloaders/grub-pc config/bootloaders/
+            echo "set timeout=5" >> config/bootloaders/grub-pc/config.cfg
             lb build 2>&1 | tee build.log
             ls -lh *.iso
             sha256sum *.iso > SHA256SUMS
@@ -60,10 +64,14 @@ jobs:
             name=$1; shift
             sudo qemu-system-x86_64 $accel -m 4096 -smp 2 -display none -vga std \
               -cdrom "$iso" -monitor unix:/tmp/mon-$name,server,nowait -daemonize "$@"
+            sleep 12
+            echo "screendump /tmp/$name-menu.ppm" | sudo socat - unix-connect:/tmp/mon-$name || true
+            echo "sendkey ret" | sudo socat - unix-connect:/tmp/mon-$name || true
             sleep $wait
             echo "screendump /tmp/$name.ppm" | sudo socat - unix-connect:/tmp/mon-$name || true
             sleep 2
             echo quit | sudo socat - unix-connect:/tmp/mon-$name || true
+            sudo convert /tmp/$name-menu.ppm shots/$name-menu.png || true
             sudo convert /tmp/$name.ppm shots/$name.png || true
           }
           sudo apt-get install -y --no-install-recommends socat
