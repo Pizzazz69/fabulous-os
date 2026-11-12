@@ -12,3 +12,9 @@ Probe fixtures so far are written from the brief's expected mini-PC profile, not
 from the real machine. Replace them with real recordings after the first start on the Beelink.
 
 Known gaps in the first image: still shows Debian's name (start-up menu, "Install Debian" icon, welcome window), default KDE wallpaper and left-aligned taskbar, a Firefox icon present, no Gemma, no Tor Browser or Brave.
+
+| Date | What | Where | Result |
+| --- | --- | --- | --- |
+| 2026-11-12 | Branded image (run 43263602914), 2.5 GB: mandala wallpaper, centred taskbar, "Install Fabulous OS" icon, Brave on the taskbar, no Firefox, no Debian welcome window | GitHub build server, UEFI Secure Boot firmware and legacy BIOS | Pass by screenshot; no build warnings |
+
+Still untested after the branding pass: running the installer; opening Brave, Tor Browser or the app store; anything on real hardware. The start-up menu on the stick still says "Debian GNU/Linux". No Gemma yet.
