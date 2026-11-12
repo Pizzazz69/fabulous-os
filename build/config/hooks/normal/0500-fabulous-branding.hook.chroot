@@ -24,10 +24,13 @@ if [ -f "$desc" ]; then
 else
     echo "FABULOUS-WARNING: $desc not found; installer still says Debian"
 fi
-for f in /usr/share/applications/install-debian.desktop /usr/share/applications/calamares.desktop; do
-    [ -f "$f" ] || continue
-    sed -i -E 's/^(Name(\[[^]]*\])?=).*/\1Install Fabulous OS/; s/^(GenericName(\[[^]]*\])?=).*/\1Fabulous OS installer/' "$f"
-done
+# Every "Install Debian" label (menu entry, desktop icon script) becomes "Install Fabulous OS".
+found=$(grep -rlI "Install Debian" /usr/share/applications /usr/bin /usr/sbin /etc/skel /etc/calamares /usr/share/calamares /lib/live /usr/lib/live 2>/dev/null || true)
+if [ -n "$found" ]; then
+    echo "$found" | while read -r f; do sed -i 's/Install Debian/Install Fabulous OS/g' "$f"; echo "relabelled $f"; done
+else
+    echo "FABULOUS-WARNING: no Install Debian label found to rename"
+fi
 
 # Default panel: Windows 11 style, icons in the centre.
 tpl=/usr/share/plasma/layout-templates/org.kde.plasma.desktop.defaultPanel/contents/layout.js

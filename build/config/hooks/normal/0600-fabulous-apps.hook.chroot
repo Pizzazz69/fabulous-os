@@ -4,11 +4,16 @@ set -e
 export DEBIAN_FRONTEND=noninteractive
 
 # Remove browsers that came in as suggestions, but only if nothing else goes with them.
-for p in firefox-esr konqueror; do
+for p in firefox-esr konqueror plasma-welcome; do
     dpkg -s "$p" >/dev/null 2>&1 || continue
     n=$(apt-get -s purge "$p" | grep -c -E '^(Purg|Remv) ' || true)
     if [ "$n" = 1 ]; then apt-get -y purge "$p"
     else echo "FABULOUS-WARNING: kept $p (removing it would remove $n packages)"; fi
+done
+
+# If the welcome window could not be removed, stop it opening by itself.
+for f in /etc/xdg/autostart/*plasma-welcome*.desktop; do
+    [ -f "$f" ] && echo "Hidden=true" >> "$f" && echo "FABULOUS-WARNING: plasma-welcome kept but hidden"
 done
 
 # Brave, from Brave's own signed repository.
