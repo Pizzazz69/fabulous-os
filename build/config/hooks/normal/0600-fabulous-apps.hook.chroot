@@ -1,0 +1,29 @@
+#!/bin/sh
+# Browsers and app store. Failures are reported as FABULOUS-WARNING, not hidden.
+set -e
+export DEBIAN_FRONTEND=noninteractive
+
+# Remove browsers that came in as suggestions, but only if nothing else goes with them.
+for p in firefox-esr konqueror; do
+    dpkg -s "$p" >/dev/null 2>&1 || continue
+    n=$(apt-get -s purge "$p" | grep -c -E '^(Purg|Remv) ' || true)
+    if [ "$n" = 1 ]; then apt-get -y purge "$p"
+    else echo "FABULOUS-WARNING: kept $p (removing it would remove $n packages)"; fi
+done
+
+# Brave, from Brave's own signed repository.
+key=/usr/share/keyrings/brave-browser-archive-keyring.gpg
+if curl -fsSLo "$key" https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg; then
+    echo "deb [signed-by=$key arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main" \
+        > /etc/apt/sources.list.d/brave-browser-release.list
+    apt-get update
+    apt-get install -y brave-browser || echo "FABULOUS-WARNING: Brave failed to install"
+else
+    echo "FABULOUS-WARNING: could not fetch Brave's signing key; Brave not installed"
+fi
+
+# App store: add Flathub to Discover for a wider choice of apps.
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo \
+    || echo "FABULOUS-WARNING: Flathub not added"
+
+apt-get clean

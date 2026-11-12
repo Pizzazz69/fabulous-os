@@ -1,19 +1,41 @@
 #!/bin/sh
 # Name the system "Fabulous OS" while staying a Debian derivative.
-# The file is diverted so Debian's base-files updates do not overwrite it.
 set -e
 
-dpkg-divert --add --rename --divert /usr/lib/os-release.debian /usr/lib/os-release
-
-cat > /usr/lib/os-release <<'EOF'
-PRETTY_NAME="Fabulous OS 0.1 (based on Debian 13)"
+# os-release: diverted so Debian's base-files updates do not overwrite it.
+# ID stays "debian" on purpose: Debian's signed GRUB (Secure Boot) expects its
+# files under EFI/debian, and tools derive that folder name from ID.
+dpkg-divert --add --no-rename --divert /usr/lib/os-release.debian /usr/lib/os-release
+cp /usr/lib/os-release /usr/lib/os-release.debian
+cat > /usr/lib/os-release <<'EOT'
+PRETTY_NAME="Fabulous OS 0.1"
 NAME="Fabulous OS"
-VERSION_ID="0.1"
-VERSION="0.1"
+VERSION_ID="13"
+VERSION="0.1 (based on Debian 13 trixie)"
 VERSION_CODENAME=trixie
-ID=fabulous
-ID_LIKE=debian
+ID=debian
 HOME_URL="https://github.com/Pizzazz69/fabulous-os"
-EOF
+EOT
+
+# Installer wording. bootloaderEntryName is deliberately left as Debian (see above).
+desc=/etc/calamares/branding/debian/branding.desc
+if [ -f "$desc" ]; then
+    sed -i -E '/^[[:space:]]*(productName|shortProductName|versionedName|shortVersionedName):/ s/Debian( GNU\/Linux)?/Fabulous OS/' "$desc"
+else
+    echo "FABULOUS-WARNING: $desc not found; installer still says Debian"
+fi
+for f in /usr/share/applications/install-debian.desktop /usr/share/applications/calamares.desktop; do
+    [ -f "$f" ] || continue
+    sed -i -E 's/^(Name(\[[^]]*\])?=).*/\1Install Fabulous OS/; s/^(GenericName(\[[^]]*\])?=).*/\1Fabulous OS installer/' "$f"
+done
+
+# Default panel: Windows 11 style, icons in the centre.
+tpl=/usr/share/plasma/layout-templates/org.kde.plasma.desktop.defaultPanel/contents/layout.js
+if [ -f "$tpl" ]; then
+    dpkg-divert --add --rename --divert "$tpl.debian" "$tpl"
+    cp /usr/share/fabulous/panel-layout.js "$tpl"
+else
+    echo "FABULOUS-WARNING: default panel template not found; taskbar not centred"
+fi
 
 chmod 0755 /usr/local/bin/fabulous-probe /usr/local/bin/fabulous-rules 2>/dev/null || true

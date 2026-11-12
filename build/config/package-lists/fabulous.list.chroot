@@ -40,3 +40,11 @@ pciutils
 # Fonts
 fonts-noto
 fonts-liberation
+
+# App store (install / remove apps with a click)
+flatpak
+plasma-discover-backend-flatpak
+
+# Browsers (Brave is added by a hook from Brave's repository)
+torbrowser-launcher
+curl

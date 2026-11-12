@@ -35,6 +35,10 @@ jobs:
           cp rules/rules.yaml $dest/share/fabulous/rules.yaml
           printf '#!/bin/sh\nexec python3 /usr/local/share/fabulous/fabulous_rules.py "$@"\n' > $dest/bin/fabulous-rules
           chmod 0755 $dest/bin/*
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends librsvg2-bin
+          w=build/config/includes.chroot/usr/share/wallpapers/Fabulous
+          rsvg-convert -w 3840 -h 2160 $w/mandala.svg -o $w/mandala.png
+          rsvg-convert -w 3840 -h 2160 $w/plain.svg -o $w/plain.png
 
       - name: Build the image inside Debian 13
         run: |
@@ -48,6 +52,7 @@ jobs:
             echo "set timeout=5" >> config/bootloaders/grub-pc/config.cfg
             lb build 2>&1 | tee build.log
             ls -lh *.iso
+            echo "=== warnings ==="; grep FABULOUS-WARNING build.log || echo "none"
             sha256sum *.iso > SHA256SUMS
           '
 
