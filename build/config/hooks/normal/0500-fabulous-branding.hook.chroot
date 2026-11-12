@@ -1,0 +1,19 @@
+#!/bin/sh
+# Name the system "Fabulous OS" while staying a Debian derivative.
+# The file is diverted so Debian's base-files updates do not overwrite it.
+set -e
+
+dpkg-divert --add --rename --divert /usr/lib/os-release.debian /usr/lib/os-release
+
+cat > /usr/lib/os-release <<'EOF'
+PRETTY_NAME="Fabulous OS 0.1 (based on Debian 13)"
+NAME="Fabulous OS"
+VERSION_ID="0.1"
+VERSION="0.1"
+VERSION_CODENAME=trixie
+ID=fabulous
+ID_LIKE=debian
+HOME_URL="https://github.com/Pizzazz69/fabulous-os"
+EOF
+
+chmod 0755 /usr/local/bin/fabulous-probe /usr/local/bin/fabulous-rules 2>/dev/null || true

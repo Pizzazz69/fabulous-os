@@ -1,0 +1,7 @@
+__pycache__/
+.pytest_cache/
+build/*.iso
+build/chroot/
+build/binary/
+build/.build/
+build/cache/

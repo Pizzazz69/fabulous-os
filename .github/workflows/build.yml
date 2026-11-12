@@ -1,0 +1,93 @@
+name: Build Fabulous OS image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pytest pyyaml
+      - run: python3 -m pytest -q packages rules
+
+  image:
+    needs: tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
+
+      - name: Copy Fabulous OS tools into the image tree
+        run: |
+          dest=build/config/includes.chroot/usr/local
+          mkdir -p $dest/bin $dest/share/fabulous
+          cp packages/fabulous-probe/fabulous_probe.py $dest/bin/fabulous-probe
+          cp rules/fabulous_rules.py $dest/share/fabulous/fabulous_rules.py
+          cp rules/rules.yaml $dest/share/fabulous/rules.yaml
+          printf '#!/bin/sh\nexec python3 /usr/local/share/fabulous/fabulous_rules.py "$@"\n' > $dest/bin/fabulous-rules
+          chmod 0755 $dest/bin/*
+
+      - name: Build the image inside Debian 13
+        run: |
+          docker run --privileged --rm -v "$PWD":/work -w /work/build debian:trixie bash -euxc '
+            apt-get update
+            apt-get install -y --no-install-recommends live-build ca-certificates
+            lb config
+            lb build 2>&1 | tee build.log
+            ls -lh *.iso
+            sha256sum *.iso > SHA256SUMS
+          '
+
+      - name: Start the image in test machines and photograph the screen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf imagemagick
+          iso=$(ls build/*.iso)
+          if [ -w /dev/kvm ] || sudo test -e /dev/kvm; then accel="-enable-kvm -cpu host"; wait=180
+          else accel="-cpu max"; wait=900; fi
+          echo "acceleration: $accel"
+          mkdir -p shots
+          shoot() {  # name, extra qemu args...
+            name=$1; shift
+            sudo qemu-system-x86_64 $accel -m 4096 -smp 2 -display none -vga std \
+              -cdrom "$iso" -monitor unix:/tmp/mon-$name,server,nowait -daemonize "$@"
+            sleep $wait
+            echo "screendump /tmp/$name.ppm" | sudo socat - unix-connect:/tmp/mon-$name || true
+            sleep 2
+            echo quit | sudo socat - unix-connect:/tmp/mon-$name || true
+            sudo convert /tmp/$name.ppm shots/$name.png || true
+          }
+          sudo apt-get install -y --no-install-recommends socat
+          cp /usr/share/OVMF/OVMF_VARS_4M.ms.fd /tmp/vars.fd
+          shoot uefi-secure-boot -machine q35,smm=on \
+            -global driver=cfi.pflash01,property=secure,value=on \
+            -drive if=pflash,format=raw,unit=0,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.secboot.fd \
+            -drive if=pflash,format=raw,unit=1,file=/tmp/vars.fd
+          shoot legacy-bios
+          ls -l shots
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-screens
+          path: |
+            shots/
+            build/build.log
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fabulous-os-image
+          path: |
+            build/*.iso
+            build/SHA256SUMS
+          compression-level: 0
+          retention-days: 14

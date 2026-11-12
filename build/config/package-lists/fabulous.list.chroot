@@ -1,0 +1,42 @@
+# Live system and installer
+live-boot
+live-config
+live-config-systemd
+calamares
+calamares-settings-debian
+
+# Desktop: KDE Plasma (DECISIONS.md)
+kde-plasma-desktop
+sddm
+plasma-nm
+plasma-pa
+plasma-discover
+kde-spectacle
+kate
+kcalc
+ark
+okular
+gwenview
+dolphin
+konsole
+
+# Hardware support: firmware as on Debian's official images
+firmware-linux
+firmware-iwlwifi
+firmware-realtek
+firmware-atheros
+firmware-misc-nonfree
+firmware-sof-signed
+intel-microcode
+amd64-microcode
+
+# Used by fabulous-probe
+python3
+python3-yaml
+mokutil
+util-linux
+pciutils
+
+# Fonts
+fonts-noto
+fonts-liberation

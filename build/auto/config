@@ -1,0 +1,23 @@
+#!/bin/sh
+# Fabulous OS image recipe (Debian live-build). Run inside Debian 13.
+# Secure Boot uses Debian's signed shim, GRUB and kernel, unchanged.
+set -e
+
+lb config noauto \
+    --distribution trixie \
+    --architectures amd64 \
+    --archive-areas "main contrib non-free-firmware" \
+    --binary-images iso-hybrid \
+    --bootloaders "grub-pc,grub-efi" \
+    --uefi-secure-boot enable \
+    --debian-installer none \
+    --firmware-chroot true \
+    --apt-recommends true \
+    --memtest none \
+    --cache false \
+    --image-name fabulous-os \
+    --iso-application "Fabulous OS" \
+    --iso-publisher "Fabulous OS" \
+    --iso-volume FABULOUS \
+    --bootappend-live "boot=live components quiet splash locales=en_GB.UTF-8 keyboard-layouts=gb timezone=Europe/London" \
+    "${@}"

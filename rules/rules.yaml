@@ -1,0 +1,34 @@
+# Fabulous OS rules. Tune numbers here; no code changes needed.
+# Thresholds are starting values (brief section 8.2), to be tuned with
+# measured benchmark figures in phase 4.
+
+supported_arch: [x86_64]
+
+# Model sizes, largest first. "One size down" moves one step along this list.
+model_ladder: [e4b, e2b, none]
+
+models:
+  e4b:  {label: "Gemma 4 E4B", memory_needed_gb: 4.5}
+  e2b:  {label: "Gemma 4 E2B", memory_needed_gb: 2.9}
+  none: {label: null,          memory_needed_gb: 0}
+
+# First matching band wins (memory.total_gb < below_gb).
+memory_bands:
+  - {below_gb: 3,    model: none, note: "This computer has too little memory for the Gemma assistant. Fabulous OS will install without it."}
+  # 3-6 GB: no model until a small build passes testing (brief 8.5.2).
+  - {below_gb: 6,    model: none, note: "This computer has too little memory for the Gemma assistant. Fabulous OS will install without it."}
+  - {below_gb: 12,   model: e2b,  note: null}
+  - {below_gb: null, model: e4b,  note: null}
+
+no_avx2:
+  step_down: 1
+  note: "This processor lacks features that speed up AI, so Gemma will answer slowly."
+
+app_sets:
+  office_if_memory_below_gb: 8
+  office_if_disk_below_gb: 40
+  office_note: "The full creative suite would be slow on this computer."
+
+safety:
+  min_disk_gb: 64
+  min_battery_percent: 30
