@@ -1,0 +1,36 @@
+name: Publish test screens
+
+# Copies a build's test screenshots to the "test-results" branch so they can be viewed.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Build run to take screenshots from
+        required: true
+  workflow_run:
+    workflows: ["Build Fabulous OS image"]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-screens
+          path: out
+          run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+      - run: |
+          cd out
+          find . -name build.log -delete
+          git init -q -b test-results
+          git config user.name "fabulous-os build"
+          git config user.email "noreply@github.com"
+          git add -A
+          git commit -q -m "Test screens from run ${{ inputs.run_id || github.event.workflow_run.id }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" test-results
