@@ -37,3 +37,13 @@ Each entry: what was decided, why, and whether it has been verified.
 - live-build option names in `build/auto/config` against Debian 13's live-build version.
 - ArtCraft "Craft" apps: state and packaging (phase 5).
 - LiteRT-LM on x86-64 Linux (phase 4).
+
+## Added 12 November 2026 (branding pass)
+
+| Decision | Reason | Verified? |
+| --- | --- | --- |
+| `os-release` keeps `ID=debian` (the brief asked for `ID=fabulous`); only the names change. GRUB's distributor name stays "Debian". | Debian's signed GRUB, needed for Secure Boot, looks for its files under `EFI/debian`, and that folder name is derived from these values. A wrong name risks an installed system that will not start. Cosmetic cost: the start-up menu of an installed system says "Debian". | Reasoned, not yet tested by a real install. |
+| App installer: KDE **Discover**, with Flathub added as a second source. | David asked for a click-to-install app store. Discover is KDE's own and handles install, remove and updates. Flathub widens the choice. It uses the network only when opened. | In the image; not yet tried. |
+| Brave is installed from Brave's own signed repository, with a policy file switching off rewards, wallet, VPN, AI chat, usage reports and the daily stats ping. | Brave is not in Debian. | Policy names not yet verified against Brave's documentation; unknown names are ignored by the browser. |
+| Tor Browser via Debian's `torbrowser-launcher`. | It downloads and verifies the real Tor Browser on first use, so it stays current. Needs the internet once, as any browser does. | Not yet tried. |
+| The Debian welcome window is switched off; Firefox and Konqueror are removed if nothing else depends on them. | David's browser choice. | Checked per build in the log. |
