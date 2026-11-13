@@ -38,6 +38,10 @@ bl=/etc/calamares/modules/bootloader.conf
 if [ -f "$bl" ]; then
     if grep -q '^grubInstall:' "$bl"; then sed -i 's|^grubInstall:.*|grubInstall: "/usr/local/sbin/fabulous-grub-install"|' "$bl"
     else printf '\ngrubInstall: "/usr/local/sbin/fabulous-grub-install"\n' >> "$bl"; fi
+    # Debian's signed shim must stay as the removable-drive start-up file. The installer's own
+    # "fallback" copy would overwrite it with GRUB, which Secure Boot refuses (seen in build 7).
+    if grep -q '^installEFIFallback:' "$bl"; then sed -i 's/^installEFIFallback:.*/installEFIFallback: false/' "$bl"
+    else printf 'installEFIFallback: false\n' >> "$bl"; fi
     echo "--- $bl"; grep -v -e '^#' -e '^$' "$bl"
 else
     echo "FABULOUS-WARNING: installer start-up settings not found; an external drive may not start on its own"
@@ -78,6 +82,14 @@ else
     echo "FABULOUS-WARNING: app store menu entry not found"
 fi
 
+# Installer wording. bootloaderEntryName is deliberately left as Debian (Secure Boot folder name).
+desc=/etc/calamares/branding/debian/branding.desc
+if [ -f "$desc" ]; then
+    sed -i -E '/^[[:space:]]*(productName|shortProductName|versionedName|shortVersionedName):/ s/Debian( GNU\/Linux)?/Fabulous OS/' "$desc"
+    grep -q 'Fabulous OS' "$desc" || echo "FABULOUS-WARNING: installer still says Debian"
+else
+    echo "FABULOUS-WARNING: $desc not found; installer still says Debian"
+fi
 # Every "Install Debian" label (menu entry, desktop icon script) becomes "Install Fabulous OS".
 found=$(grep -rlI "Install Debian" /usr/share/applications /usr/bin /usr/sbin /etc/skel /etc/calamares /usr/share/calamares /lib/live /usr/lib/live 2>/dev/null || true)
 if [ -n "$found" ]; then
