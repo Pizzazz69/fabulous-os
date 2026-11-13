@@ -1,3 +1,3 @@
-type clear; ls /usr/lib/calamares/modules/bootloader-config; grep -h -v -e ---- /usr/lib/calamares/modules/bootloader-config/module.desc; grep -n -e grub -e shim -e efi -e apt /usr/lib/calamares/modules/bootloader-config/bootloader-config
+type clear; grep -v -e ----- /usr/share/calamares/helpers/calamares-bootloader-config
 key ret
 sleep 3
