@@ -23,6 +23,8 @@ sleep 170
 shot 01-stick-desktop
 
 # Open the installer the way a person would: double-click the desktop icon.
+# (The very first click after start-up only wakes the desktop, so click an empty spot first.)
+vm click 900 250; sleep 2
 vm dclick 58 45; sleep 25
 shot 02-after-double-click
 if region_changed "$OUT/install-01-stick-desktop.png" "$OUT/install-02-after-double-click.png"; then
