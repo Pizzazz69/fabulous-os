@@ -1,3 +1,34 @@
-type clear; grep -v -e ----- /usr/share/calamares/helpers/calamares-bootloader-config
+type clear; sudo sed -i s/Fallback:.true/Fallback:.false/ /etc/calamares/modules/bootloader.conf; grep -e Fallback -e grubInstall /etc/calamares/modules/bootloader.conf
 key ret
-sleep 3
+sleep 2
+snap
+type exit
+key ret
+sleep 2
+dclick 58 45
+sleep 25
+key alt-n
+sleep 6
+key alt-n
+sleep 5
+key alt-n
+sleep 12
+click 335 185
+sleep 5
+key alt-n
+sleep 6
+click 428 165
+type Test User
+click 428 347
+type Qz7-mandala-Plum4
+click 634 347
+type Qz7-mandala-Plum4
+sleep 2
+key alt-n
+sleep 6
+key alt-i
+sleep 4
+key alt-i
+sleep 200
+move 700 300
+sleep 130
