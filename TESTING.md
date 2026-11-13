@@ -63,3 +63,36 @@ the reports are saved beside the screenshots on the `test-results` branch.
 - A scan started from the Virus Scanner window.
 - Brave's privacy setting names against Brave's documentation.
 - No Gemma, LibreOffice or creative apps yet.
+
+## 13 November 2026, afternoon: option B (install on an external drive)
+
+The test machine now has Secure Boot enforcing, an internal 477 GB disk laid out like a Windows PC's
+(EFI, Microsoft reserved, NTFS "Windows" with a marker file, NTFS recovery), and a blank 500 GB external USB drive.
+"Unchanged" means `qemu-img compare` against a copy of the internal disk taken beforehand reports "Images are identical".
+
+| What | Image | How | Result |
+| --- | --- | --- | --- |
+| Probe and rules unit tests (19), rules now offer only external drives | — | Workspace and build server | Pass |
+| Installer's first choice of disk, as Debian ships it | build 6 | By hand, remote-controlled test machine | **Dangerous: the internal Windows disk was preselected**, with "Erase disk" one click away. |
+| With the internal disk made read-only, installer offers only the external drive | build 6 by hand; builds 7, 8 built in | Screenshot; stick self-check shows `sda` read-only | Pass |
+| Install onto the external drive; internal disk unchanged afterwards | builds 6, 7 by hand; 7, 8 automated | `qemu-img compare` | Pass every time (5 installs) |
+| External drive starts by itself after the firmware's memory is wiped | build 6, 7 | By hand and automated | **Fail.** Build 6: no start-up file in the removable-drive location. Build 7: file present but it was GRUB, not the signed shim; Secure Boot refused it ("Access Denied"). |
+| Build 7 (run 43435924365) | build 7 | Build server | Built; install test failed as above. Also lost the installer's "Fabulous OS" wording through an editing mistake by Claude. |
+| Build 8 (run 43444437036), 2.5 GB | build 8 | Build server | Pass, no build warnings |
+| **Automated install test, option B**: install to external drive, wipe firmware memory, start from the external drive under Secure Boot, log in | build 8 | Build server, 14 screenshots | **Pass**, 0 problems |
+| Installed system (on the external drive): calls itself Fabulous OS; Secure Boot enforcing; firewall active, incoming refused; nothing listening; set to London | build 8 | Self-check | Pass |
+| Internal disk unchanged after the installed system had run | build 8 | `qemu-img compare` | Pass |
+| Virus signatures fetched by the on-request service; scanner then detects the EICAR test file | build 8 | Self-check on the installed system (service started as administrator) | Pass |
+| Installer starts in London | build 6 by hand; build 8 | Screenshot; self-check of installed system | Pass |
+| Installer pictures: mandala logo, "Fabulous OS, based on Debian" | build 8 | Screenshot `install-03` | Pass. The heading still says "Welcome to the Calamares installer for Fabulous OS 13". |
+| Log-in screen shows the mandala | build 8 | Screenshot `install-12` | Partly: mandala background, but a "debian" logo remains at the bottom. |
+| Brave on the installed system opens with no "KDE Wallet" question | build 8 | Screenshot `install-14` | Pass |
+
+### Not tested (new items)
+
+- Whether anything is written to the PC's firmware memory during install. The installer is told not to (`--no-nvram`); the test shows the drive does not *need* such an entry, not that none was written.
+- Opening the Virus Scanner from the menu as an ordinary user (the no-password permission to fetch signatures).
+- The daily "updates available" pop-up, and its setting names.
+- "App Store" label; Brave in the stick session (Wallet switched off there).
+- A real external SSD, a real PC, a real Windows disk with BitLocker. The pretend Windows disk cannot start, so "unplug and Windows starts as before" is argued from the disk being unchanged, not observed.
+- Gemma from an external drive.
