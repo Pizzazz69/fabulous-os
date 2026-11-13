@@ -2,6 +2,7 @@
 # essentials (UEFI with Secure Boot enforcing, one blank 119 GB internal disk).
 # Usage: vm_prepare; vm_start stick|disk [selftest-mode]; vm ...commands...; vm_stop
 VMDIR=${VMDIR:-/mnt/fabulous-vm}
+VMLIB_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SOCK=$VMDIR/qmp.sock
 
 vm_prepare() {
@@ -31,6 +32,6 @@ vm_start() {  # $1 = stick (image attached, started from it) or disk (internal d
     sleep 2
 }
 
-vm() { sudo python3 "$(dirname "${BASH_SOURCE[0]}")/vmctl.py" "$SOCK" "$@"; }
+vm() { sudo python3 "$VMLIB_DIR/vmctl.py" "$SOCK" "$@"; }
 
 vm_stop() { vm quit || true; sleep 3; }

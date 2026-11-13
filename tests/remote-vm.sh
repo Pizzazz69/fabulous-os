@@ -13,7 +13,7 @@ git config user.name "fabulous-os build"; git config user.email "noreply@github.
 remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
 last=""; n=0; end=$(( $(date +%s) + MINUTES*60 ))
 publish() {
-    vm shot "$VMDIR/s.png" && sudo cat "$VMDIR/s.png" > shot.png
+    vm shot "$VMDIR/s.png" >> log.txt 2>&1 && sudo cat "$VMDIR/s.png" > shot.png
     sudo sh -c "cat $VMDIR/serial-*.log" | tr -d '\000' | tail -c 20000 > serial.txt
     echo "$1" > done.txt
     git add -A; git commit -q -m "screen $1" --allow-empty; git push -q -f "$remote" vm-screen
@@ -32,7 +32,7 @@ while [ "$(date +%s)" -lt "$end" ]; do
                 snap) n=$((n+1)); vm shot "$VMDIR/s.png"; sudo cat "$VMDIR/s.png" > "snap-$n.png" ;;
                 restart-from-disk) vm_stop; vm_start disk full ;;
                 stop) publish "$sha"; vm_stop; exit 0 ;;
-                *) vm $line ;;
+                *) vm $line >> log.txt 2>&1 ;;
             esac
         done < <(git show FETCH_HEAD:cmd.txt)
         publish "$sha"
