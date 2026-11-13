@@ -1,13 +1,2 @@
-click 428 349
-key ctrl-a
-type Qz7-mandala-Plum4
-click 634 349
-key ctrl-a
-type Qz7-mandala-Plum4
-sleep 2
-snap
-click 1008 676
-sleep 6
-snap
-click 1008 676
-sleep 5
+key alt-i
+sleep 4
