@@ -1,26 +1,20 @@
-key alt-c
-sleep 2
-snap
-key alt-y
-sleep 3
-key meta_l
-sleep 3
-type konsole
-sleep 3
-key ret
-sleep 8
-type sudo blockdev --setro /dev/sda /dev/sda1 /dev/sda2 /dev/sda3 /dev/sda4; lsblk -o NAME,RO,RM,TRAN,SIZE
-key ret
-sleep 2
-snap
-type exit
-key ret
-sleep 2
-dclick 58 45
-sleep 25
-key alt-n
-sleep 6
-key alt-n
+click 335 185
 sleep 5
 key alt-n
-sleep 12
+sleep 6
+click 428 165
+type Test User
+click 428 347
+type Qz7-mandala-Plum4
+click 634 347
+type Qz7-mandala-Plum4
+sleep 2
+key alt-n
+sleep 6
+snap
+key alt-i
+sleep 4
+key alt-i
+sleep 240
+move 700 300
+sleep 200
