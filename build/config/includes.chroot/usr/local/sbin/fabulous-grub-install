@@ -1,0 +1,11 @@
+#!/bin/sh
+# The installer calls this in place of grub-install.
+# Fabulous OS is installed on an external drive, so on UEFI PCs:
+#   --force-extra-removable  also puts the signed start-up files where every PC looks
+#                            on a removable drive (EFI/BOOT), so the drive starts on its
+#                            own from the boot-key menu;
+#   --no-nvram               writes nothing into the PC's own firmware memory.
+case "$*" in
+    *x86_64-efi*) exec grub-install "$@" --force-extra-removable --no-nvram ;;
+esac
+exec grub-install "$@"

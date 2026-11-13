@@ -20,16 +20,28 @@ apt-get install -y plasma-firewall || echo "FABULOUS-WARNING: plasma-firewall no
 # Virus scanner, scan-on-request only. No always-on scanning service (clamav-daemon):
 # it would hold over 1 GB of memory.
 if apt-get install -y --no-install-recommends clamav clamav-freshclam; then
-    # The signature updater must not download hundreds of MB into memory when
-    # running from the stick; it runs only on an installed system.
-    mkdir -p /etc/systemd/system/clamav-freshclam.service.d
-    printf '[Unit]\nConditionPathExists=!/run/live/medium\n' \
-        > /etc/systemd/system/clamav-freshclam.service.d/fabulous-not-on-stick.conf
+    # No background downloading (David, 13 November): signatures are fetched when the
+    # Virus Scanner is opened, by fabulous-signatures.service.
+    systemctl disable clamav-freshclam.service 2>/dev/null || true
+    systemctl mask clamav-freshclam.service || echo "FABULOUS-WARNING: background signature updater not switched off"
+    sed -i 's/^NotifyClamd/#NotifyClamd/' /etc/clamav/freshclam.conf 2>/dev/null || true
 else
     echo "FABULOUS-WARNING: ClamAV not installed"
 fi
 # A window for the scanner, if Debian 13 still carries it.
 apt-get install -y clamtk || echo "FABULOUS-WARNING: clamtk not installed; scanner has no window yet"
+
+apt-get install -y kdialog || echo "FABULOUS-WARNING: kdialog not installed; no 'getting signatures' message"
+ct=/usr/share/applications/clamtk.desktop
+if [ -f "$ct" ]; then
+    dpkg-divert --add --rename --divert "$ct.debian" "$ct"
+    sed 's|^Exec=clamtk|Exec=/usr/local/bin/fabulous-virus-scanner|' "$ct.debian" > "$ct"
+    grep -q fabulous-virus-scanner "$ct" || echo "FABULOUS-WARNING: Virus Scanner does not fetch signatures when opened"
+else
+    echo "FABULOUS-WARNING: Virus Scanner menu entry not found"
+fi
+chmod 0755 /usr/local/bin/fabulous-virus-scanner /usr/local/sbin/fabulous-stick-session
+systemctl enable fabulous-stick-session.service || echo "FABULOUS-WARNING: internal disks are NOT protected in the stick session"
 
 # Self-check used by the build servers' test machines (see the script for when it runs).
 chmod 0755 /usr/local/sbin/fabulous-selftest

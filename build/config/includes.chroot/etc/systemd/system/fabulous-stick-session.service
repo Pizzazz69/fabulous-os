@@ -1,0 +1,14 @@
+[Unit]
+Description=Fabulous OS stick session: protect internal disks
+ConditionPathExists=/run/live/medium
+Before=display-manager.service
+After=systemd-udev-settle.service local-fs.target
+Wants=systemd-udev-settle.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/fabulous-stick-session
+
+[Install]
+WantedBy=multi-user.target

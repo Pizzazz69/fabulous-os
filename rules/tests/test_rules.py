@@ -19,6 +19,8 @@ MINIPC = {
          "is_live_medium": True, "partitions": []},
         {"name": "nvme0n1", "model": "AZW 512G", "size_gb": 476.9, "removable": False,
          "is_live_medium": False, "partitions": []},
+        {"name": "sdb", "model": "Portable SSD", "size_gb": 465.8, "removable": True,
+         "is_live_medium": False, "partitions": []},
     ],
     "windows": {"present": True, "bitlocker": True},
     "power": {"has_battery": False, "on_battery": False, "percent": None},
@@ -38,9 +40,10 @@ def test_minipc_gets_e2b_with_slow_note():
     assert d["model"] == "e2b"
     assert any("answer slowly" in n for n in d["model_notes"])
     assert d["app_set"] == "full"
-    assert d["target_disk"] == "nvme0n1"
+    assert d["target_disk"] == "sdb"  # the external drive, never the internal disk
+    assert d["target_disk_choices"] == ["sdb"]
     assert d["refusals"] == []
-    assert d["will_erase_windows"] is True
+    assert d["will_erase_windows"] is False and d["windows_present"] is True
     assert "16 GB" in d["welcome_text"] and "Gemma 4 E2B" in d["welcome_text"]
 
 
@@ -66,17 +69,17 @@ def test_4gb_gets_no_model_and_office():
     assert d["model"] == "none" and d["app_set"] == "office"
 
 
-def test_usb_stick_is_never_a_target():
+def test_stick_and_internal_disk_are_never_targets():
     p = copy.deepcopy(MINIPC)
-    p["disks"] = [p["disks"][0]]
+    p["disks"] = p["disks"][:2]  # only the stick and the internal Windows disk
     d = fr.decide(p, RULES)
     assert d["target_disk"] is None and d["target_disk_choices"] == []
-    assert any("No internal disk" in r for r in d["refusals"])
+    assert any("No external drive" in r for r in d["refusals"])
 
 
-def test_small_disk_refused():
+def test_small_external_drive_refused():
     p = copy.deepcopy(MINIPC)
-    p["disks"][1]["size_gb"] = 29.8
+    p["disks"][2]["size_gb"] = 29.8
     assert any("too small" in r for r in fr.decide(p, RULES)["refusals"])
 
 
@@ -92,10 +95,10 @@ def test_low_battery_refused():
     assert any("battery" in r for r in fr.decide(p, RULES)["refusals"])
 
 
-def test_largest_internal_disk_preferred():
+def test_largest_external_drive_preferred():
     p = copy.deepcopy(MINIPC)
-    p["disks"].append({"name": "sdb", "model": "Big", "size_gb": 931.5, "removable": False,
+    p["disks"].append({"name": "sdc", "model": "Big", "size_gb": 931.5, "removable": True,
                        "is_live_medium": False, "partitions": []})
     d = fr.decide(p, RULES)
-    assert d["target_disk"] == "sdb"
-    assert d["target_disk_choices"] == ["nvme0n1", "sdb"]
+    assert d["target_disk"] == "sdc"
+    assert d["target_disk_choices"] == ["sdb", "sdc"]

@@ -1,0 +1,8 @@
+[Unit]
+Description=Fabulous OS: fetch the latest virus signatures (runs only when asked)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/freshclam --quiet
+TimeoutStartSec=900

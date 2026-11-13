@@ -23,7 +23,7 @@ fabulous-probe --explain
 echo "--- rules"
 fabulous-probe --stdout > /run/fabulous-selftest-profile.json && fabulous-rules /run/fabulous-selftest-profile.json
 echo "--- disks"
-lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT
+lsblk -o NAME,RO,RM,TRAN,SIZE,TYPE,FSTYPE,MOUNTPOINT
 echo "--- memory"
 free -m
 echo "--- services that failed to start (empty = none)"
@@ -35,15 +35,14 @@ systemctl is-active clamav-freshclam 2>&1 | sed 's/^/signature updater: /'
 echo "=== FABULOUS SELFTEST BASIC DONE ==="
 if [ "$mode" = full ]; then
     echo "--- scanner detection test"
-    systemctl stop clamav-freshclam 2>/dev/null
-    timeout 600 freshclam --stdout 2>&1 | tail -n 8
+    systemctl start fabulous-signatures.service; echo "signature fetch exit code: $?"
+    ls -l /var/lib/clamav
     d=$(mktemp -d)
     # The standard harmless antivirus test file (EICAR), assembled here so that
     # no copy of it sits in the image.
     printf '%s%s' 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-' 'ANTIVIRUS-TEST-FILE!$H+H*' > "$d/eicar.com"
     echo "clean text" > "$d/clean.txt"
-    timeout 600 clamscan "$d"
-    echo "clamscan exit code: $? (1 means a virus was found)"
+    timeout 600 clamscan --no-summary "$d" 2>&1 | grep -a -v "Loading:"
     rm -rf "$d"
     echo "=== FABULOUS SELFTEST FULL DONE ==="
 fi

@@ -62,3 +62,17 @@ Each entry: what was decided, why, and whether it has been verified.
 | The background Tor service that comes with Tor Browser's launcher is switched off. | It connected to the Tor network at every start without being asked. Tor Browser carries its own. | Build 6 self-check: nothing listening. Tor Browser itself not yet opened. |
 | The system's name is written directly to `/etc/os-release` as well as `/usr/lib/os-release`. | Build 5's self-check showed the running system still calling itself Debian; why the first method failed is not known. `ID=debian` is unchanged. | Build 6 self-check: "Fabulous OS 0.1", stick and installed. |
 | Test tooling in `tests/`: `install-test.sh` runs on every build; `remote-vm.sh` lets Claude operate a test machine step by step. | The installer could not otherwise be tested without David's PC. | Used 13 November. |
+
+## Added 13 November 2026, afternoon (option B: external drive)
+
+| Decision | Reason | Verified? |
+| --- | --- | --- |
+| **Fabulous OS is installed on an external USB SSD. The Beelink's internal disk (477 GB, Windows) is never changed.** This replaces "Fabulous OS replaces Windows completely" of 12 November. | David wants a sure way back. Renaming the Windows folder (as Windows upgrades do) is not possible for Linux. To go back: unplug the drive. | See TESTING.md. |
+| In the stick session every internal disk is made **read-only** at start-up (`fabulous-stick-session`). | The installer's first choice was the internal Windows disk, with "Erase disk" one click away. With the disk read-only the installer offers only external drives, and the kernel refuses any write to it. | Tried by hand in a test machine on build 6; built in from build 7. |
+| Rules: only external drives are install targets; internal disks never. | Follows from option B. | Unit-tested. |
+| Start-up files go in the removable-drive location (`EFI/BOOT`) as well, and nothing is written to the PC's firmware memory (`fabulous-grub-install`). | A hand test showed that with wiped firmware memory the external drive did not start: Debian's installer relies on an entry in the PC's firmware. | See TESTING.md. |
+| Installer starts in **London**. | David agreed after Claude explained that a New York clock adds no anonymity and makes Brave more distinctive. | Tried by hand on build 6; built in from build 7. |
+| Updates: the system checks daily and shows a pop-up; David clicks to install. No silent installs. | David's choice. The check itself uses the network. | Setting names unverified. |
+| Virus signatures are fetched when the Virus Scanner is opened; no background downloading. | David's choice. | See TESTING.md. |
+| Stick session: password safe (KDE Wallet) off, update pop-ups off. | The stick has no log-in password to lock a safe with; updating a stick session is pointless. | See TESTING.md. |
+| Installer pictures and log-in screen use the mandala; the installer picture says "based on Debian". The app store is labelled "App Store". | David's request; Debian's trademark rules. | See TESTING.md. |

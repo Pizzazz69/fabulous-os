@@ -4,8 +4,9 @@
 Input: profile JSON from fabulous-probe. Output: decision JSON.
 All thresholds and wording live in rules.yaml.
 
-Version 1 scope (DECISIONS.md): Fabulous OS replaces whatever is on the chosen
-disk. Keeping another system beside it is not offered.
+Version 1 scope (DECISIONS.md, 13 November 2026, "option B"): Fabulous OS is
+installed on an external drive. The computer's internal disks are never offered,
+so Windows stays exactly as it was.
 """
 import json
 import os
@@ -43,8 +44,9 @@ def choose_model(profile, rules):
 
 
 def target_disks(profile):
-    """Disks Fabulous OS may be installed on: never the stick, never removable."""
-    return [d for d in profile["disks"] if not d["is_live_medium"] and not d["removable"]]
+    """Disks Fabulous OS may be installed on: external drives only.
+    Never the stick it started from, and never an internal disk."""
+    return [d for d in profile["disks"] if d["removable"] and not d["is_live_medium"]]
 
 
 def choose_app_set(profile, disk, rules):
@@ -60,7 +62,7 @@ def refusals(profile, disk, rules):
     if profile["arch"] not in rules["supported_arch"]:
         out.append("This USB stick is for PCs. It cannot install on this kind of computer.")
     if disk is None:
-        out.append("No internal disk was found to install Fabulous OS on.")
+        out.append("No external drive was found. Plug in the drive Fabulous OS should be installed on.")
     elif disk["size_gb"] < s["min_disk_gb"]:
         out.append(f"The disk is too small. Fabulous OS needs at least {s['min_disk_gb']} GB.")
     p = profile.get("power", {})
@@ -100,9 +102,9 @@ def decide(profile, rules=None):
         "app_set_note": app_note,
         "target_disk": disk["name"] if disk else None,
         "target_disk_choices": [d["name"] for d in disks],
-        # Replacing erases the disk, so BitLocker and Fast Startup do not block it;
-        # the installer still requires the typed DELETE confirmation.
-        "will_erase_windows": bool(profile.get("windows", {}).get("present")),
+        # Internal disks are never targets, so Windows is never erased.
+        "will_erase_windows": False,
+        "windows_present": bool(profile.get("windows", {}).get("present")),
         "refusals": refusals(profile, disk, rules),
         "welcome_text": welcome,
     }

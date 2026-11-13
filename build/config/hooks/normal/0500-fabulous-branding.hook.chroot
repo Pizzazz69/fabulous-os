@@ -32,22 +32,52 @@ if [ -f "$cs" ]; then
 else
     echo "FABULOUS-WARNING: $cs not found; installer erases without asking"
 fi
-lc=/etc/calamares/modules/locale.conf
-[ -f "$lc" ] || cp /usr/share/calamares/modules/locale.conf "$lc" 2>/dev/null || true
-if [ -f "$lc" ]; then
-    sed -i -E 's/^region:.*/region: "Europe"/; s/^zone:.*/zone: "London"/' "$lc"
-    grep -q '^zone: "London"' "$lc" || echo "FABULOUS-WARNING: installer still starts in New York"
+# Start-up files for an external drive (see /usr/local/sbin/fabulous-grub-install).
+chmod 0755 /usr/local/sbin/fabulous-grub-install
+bl=/etc/calamares/modules/bootloader.conf
+if [ -f "$bl" ]; then
+    if grep -q '^grubInstall:' "$bl"; then sed -i 's|^grubInstall:.*|grubInstall: "/usr/local/sbin/fabulous-grub-install"|' "$bl"
+    else printf '\ngrubInstall: "/usr/local/sbin/fabulous-grub-install"\n' >> "$bl"; fi
+    echo "--- $bl"; grep -v -e '^#' -e '^$' "$bl"
 else
-    echo "FABULOUS-WARNING: installer locale settings not found; it starts in New York"
+    echo "FABULOUS-WARNING: installer start-up settings not found; an external drive may not start on its own"
+fi
+# Later GRUB updates on the installed system keep to the same two rules.
+printf '%s\n' "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" \
+              "grub-efi-amd64 grub2/update_nvram boolean false" | debconf-set-selections \
+    || echo "FABULOUS-WARNING: GRUB update settings not stored"
+
+grep -q 'zone: London' /etc/calamares/modules/locale.conf 2>/dev/null \
+    || echo "FABULOUS-WARNING: installer still starts in New York"
+
+# Installer pictures and wording (made from the mandala by the build; "based on Debian" is on the picture).
+bd=/etc/calamares/branding/debian
+for pair in "fabulous-logo.png:debian-logo.png" "fabulous-welcome.png:welcome.png" "fabulous-welcome.png:slide1.png"; do
+    src=/usr/share/fabulous/branding/${pair%%:*}; dst=$bd/${pair##*:}
+    if [ -f "$src" ] && [ -f "$dst" ]; then cp "$src" "$dst"
+    else echo "FABULOUS-WARNING: installer picture ${pair##*:} not replaced"; fi
+done
+if [ -f $bd/show.qml ]; then sed -i 's/Debian GNU\/Linux/Fabulous OS/g' $bd/show.qml
+else echo "FABULOUS-WARNING: installer slideshow text not found"; fi
+
+# Log-in screen: the mandala instead of Debian's picture.
+found=0
+for t in /usr/share/sddm/themes/*/; do
+    [ -f "$t/theme.conf" ] || continue
+    printf '[General]\ntype=image\nbackground=/usr/share/wallpapers/Fabulous/mandala.png\n' > "$t/theme.conf.user"
+    found=1
+done
+[ "$found" = 1 ] || echo "FABULOUS-WARNING: log-in screen picture not replaced"
+
+# The app store is shown as "App Store".
+ds=/usr/share/applications/org.kde.discover.desktop
+if [ -f "$ds" ]; then
+    dpkg-divert --add --rename --divert "$ds.debian" "$ds"
+    sed -e '/^Name\[/d' -e 's/^Name=.*/Name=App Store/' "$ds.debian" > "$ds"
+else
+    echo "FABULOUS-WARNING: app store menu entry not found"
 fi
 
-# Installer wording. bootloaderEntryName is deliberately left as Debian (see above).
-desc=/etc/calamares/branding/debian/branding.desc
-if [ -f "$desc" ]; then
-    sed -i -E '/^[[:space:]]*(productName|shortProductName|versionedName|shortVersionedName):/ s/Debian( GNU\/Linux)?/Fabulous OS/' "$desc"
-else
-    echo "FABULOUS-WARNING: $desc not found; installer still says Debian"
-fi
 # Every "Install Debian" label (menu entry, desktop icon script) becomes "Install Fabulous OS".
 found=$(grep -rlI "Install Debian" /usr/share/applications /usr/bin /usr/sbin /etc/skel /etc/calamares /usr/share/calamares /lib/live /usr/lib/live 2>/dev/null || true)
 if [ -n "$found" ]; then

@@ -1,7 +1,10 @@
 #!/bin/bash
-# Automated install test. Starts the image in a test machine with Secure Boot
-# enforcing and a blank 119 GB disk, clicks through the installer ("erase disk"),
-# then restarts from the disk alone, logs in, and reads the system's self-check.
+# Automated install test (option B: install on an external drive).
+# The test machine has Secure Boot enforcing, an internal 477 GB disk laid out like
+# Windows, and a blank 500 GB external USB drive. The test clicks through the
+# installer, then wipes the firmware's memory and restarts from the external drive,
+# logs in, reads the system's self-check, and finally compares the internal disk
+# with a copy taken beforehand: it must be byte-for-byte unchanged.
 # Usage: ISO=/path/to/image.iso OUT=dir tests/install-test.sh
 set -u
 : "${ISO:?}"; OUT=${OUT:-shots}; mkdir -p "$OUT"
@@ -36,8 +39,9 @@ fi
 shot 03-welcome
 vm key alt-n; sleep 6; shot 04-location
 vm key alt-n; sleep 6; shot 05-keyboard
-vm key alt-n; sleep 10; shot 06-partitions
+vm key alt-n; sleep 12; shot 06-partitions
 vm click 335 185; sleep 5; shot 07-erase-disk-chosen
+sudo cat "$VMDIR/serial-stick.log" | tr -d '\000\r' | sed -n '/SELFTEST BEGIN/,$p' > "$OUT/install-stick-selfcheck.txt"
 vm key alt-n; sleep 6
 vm click 428 165 -- type Test User -- click 428 347 -- type "$PASSWORD" -- click 634 347 -- type "$PASSWORD"; sleep 2
 shot 08-users
@@ -48,13 +52,20 @@ for i in 1 2 3 4 5 6 7 8; do sleep 60; vm move $((600+i)) 300; done   # keep the
 shot 11-install-finished
 vm_stop
 
-vm_start disk full
-sleep 90; shot 12-login-screen
+if vm_internal_unchanged; then
+    echo "Internal (Windows) disk is byte-for-byte unchanged after the install." | tee -a "$OUT/install-result.txt"
+else
+    problem "THE INTERNAL DISK WAS CHANGED BY THE INSTALL."
+fi
+vm_start external full
+sleep 100; shot 12-login-screen
 vm key shift -- sleep 3 -- type "$PASSWORD" -- key ret
 sleep 60; shot 13-installed-desktop
-log="$VMDIR/serial-disk.log"
+vm click 900 250 -- click 632 768; sleep 30; shot 14-brave-on-installed-system
+log="$VMDIR/serial-external.log"
 for i in $(seq 1 90); do sudo grep -aq "SELFTEST FULL DONE" "$log" && break; sleep 10; done
 vm_stop
+vm_internal_unchanged >/dev/null || problem "THE INTERNAL DISK WAS CHANGED BY RUNNING THE INSTALLED SYSTEM."
 sudo cat "$log" | tr -d '\000\r' | sed -n '/SELFTEST BEGIN/,$p' > "$OUT/install-selfcheck.txt"
 echo "=== self-check of the installed system ==="; cat "$OUT/install-selfcheck.txt"
 
@@ -65,5 +76,8 @@ need "SecureBoot enabled" "Secure Boot is not enforcing in the installed system.
 need "^Status: active" "The firewall is not active in the installed system."
 need "deny (incoming)" "The firewall does not refuse incoming connections."
 need "FOUND" "The virus scanner did not detect the standard test file."
+need "timezone: Europe/London" "The installed system is not set to London."
+need "^sdb .* usb .*disk" "The installed system does not see itself on a USB drive."
+grep -aqE "^sda +1 " "$OUT/install-stick-selfcheck.txt" || problem "The internal disk was not read-only in the stick session."
 echo "problems: $problems" | tee -a "$OUT/install-result.txt"
 [ "$problems" -eq 0 ]

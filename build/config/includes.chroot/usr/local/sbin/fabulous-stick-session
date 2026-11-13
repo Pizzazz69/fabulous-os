@@ -1,0 +1,31 @@
+#!/bin/sh
+# Runs at start-up, only when Fabulous OS was started from the stick.
+[ -e /run/live/medium ] || exit 0
+
+# 1. Make every internal disk read-only for this session. "Try it first" and the
+#    installer then cannot change the computer's own disks, whatever is clicked:
+#    the installer only offers external drives, and Windows stays as it was.
+live=$(findmnt -n -o SOURCE /run/live/medium)
+livedisk=$(lsblk -n -o PKNAME "$live" 2>/dev/null | head -n 1)
+[ -n "$livedisk" ] || livedisk=${live##*/}
+for d in /sys/block/*; do
+    n=${d##*/}
+    case "$n" in loop*|ram*|zram*|sr*|dm-*|md*|fd*) continue ;; esac
+    [ "$n" = "$livedisk" ] && continue
+    [ "$(cat "$d/removable" 2>/dev/null)" = 1 ] && continue
+    case "$(readlink -f "$d/device" 2>/dev/null)" in */usb*) continue ;; esac
+    for dev in "/dev/$n" /dev/"$n"?*; do
+        [ -b "$dev" ] && blockdev --setro "$dev"
+    done
+    echo "fabulous: internal disk $n is read-only for this session"
+done
+
+# 2. No password-safe questions in the stick session (it has no log-in password to
+#    lock a safe with). Installed systems keep the safe.
+printf '[Wallet]\nEnabled=false\n' > /etc/xdg/kwalletrc
+
+# 3. No "updates available" pop-ups from the stick: updating a stick session is pointless.
+for f in /etc/xdg/autostart/org.kde.discover.notifier.desktop; do
+    [ -f "$f" ] && ! grep -q '^Hidden=true' "$f" && echo "Hidden=true" >> "$f"
+done
+exit 0

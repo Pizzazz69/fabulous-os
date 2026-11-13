@@ -1,0 +1,9 @@
+#!/bin/sh
+# Virus Scanner: fetch the latest signatures (only now, when the scanner is opened),
+# then open the scanner's window.
+if command -v kdialog >/dev/null 2>&1; then
+    kdialog --title "Virus Scanner" --passivepopup \
+        "Getting the latest virus signatures. The first time, this can take a few minutes." 20 &
+fi
+systemctl start fabulous-signatures.service 2>/dev/null || true
+exec clamtk "$@"

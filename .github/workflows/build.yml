@@ -39,6 +39,16 @@ jobs:
           w=build/config/includes.chroot/usr/share/wallpapers/Fabulous
           rsvg-convert -w 3840 -h 2160 $w/mandala.svg -o $w/mandala.png
           rsvg-convert -w 3840 -h 2160 $w/plain.svg -o $w/plain.png
+          # Installer pictures, made from the mandala
+          sudo apt-get install -y --no-install-recommends imagemagick fonts-dejavu-core
+          b=build/config/includes.chroot/usr/share/fabulous/branding; mkdir -p $b
+          rsvg-convert -w 1920 -h 1080 $w/mandala.svg -o /tmp/m.png
+          convert /tmp/m.png -gravity center -crop 840x840+0+0 +repage -resize 256x256 $b/fabulous-logo.png
+          convert /tmp/m.png -gravity center -crop 1620x1080+0+0 +repage -resize 860x573! \
+            -fill '#22303c' -draw 'rectangle 0,440 860,573' \
+            -gravity south -fill white -font DejaVu-Sans-Bold -pointsize 52 -annotate +0+58 'Fabulous OS' \
+            -font DejaVu-Sans -pointsize 22 -annotate +0+22 'based on Debian' $b/fabulous-welcome.png
+          ls -l $b
 
       - name: Build the image inside Debian 13
         run: |
