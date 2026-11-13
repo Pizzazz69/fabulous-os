@@ -1,1 +1,25 @@
-sleep 1
+click 632 768
+sleep 25
+snap
+key ctrl-q
+sleep 3
+click 686 768
+sleep 30
+snap
+key ctrl-q
+sleep 3
+key meta_l
+sleep 3
+type clamtk
+sleep 3
+key ret
+sleep 15
+snap
+key ctrl-q
+sleep 2
+key meta_l
+sleep 3
+type firewall
+sleep 4
+key ret
+sleep 15
