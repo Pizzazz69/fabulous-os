@@ -1,0 +1,65 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI QEMU DVD-ROM QM00003 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x1,0xFFFF,0x0)
+BdsDxe: starting Boot0001 "UEFI QEMU DVD-ROM QM00003 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x1,0xFFFF,0x0)
+=== FABULOUS SELFTEST BEGIN (mode: full) ===
+system: Fabulous OS 0.1
+started from: stick
+kernel: 6.12.116+deb13-amd64
+-rw-r--r-- 1 root root 193 Nov 13 13:43 /etc/os-release
+-rw-r--r-- 1 root root 193 Nov 13 13:43 /usr/lib/os-release
+-rw-r--r-- 1 root root 286 Nov 13 13:43 /usr/lib/os-release.debian
+timezone: Europe/London  language: en_GB.UTF-8
+--- secure boot
+SecureBoot enabled
+--- firewall
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+--- network services listening (empty = none)
+--- probe
+Processor: AMD EPYC 9V45 96-Core Processor (3 cores).
+Memory: 3.8 GB.
+This processor has the features that make the AI assistant fast (AVX2).
+The computer uses modern start-up (UEFI). Secure Boot is on.
+Disk sda (QEMU HARDDISK): 477.0 GB, an internal disk.
+Disk sdb (QEMU HARDDISK): 500.0 GB, a removable drive.
+Windows was found on this computer.
+--- rules
+{
+  "model": "none",
+  "model_label": null,
+  "model_notes": [
+    "This computer has too little memory for the Gemma assistant. Fabulous OS will install without it."
+  ],
+  "app_set": "office",
+  "app_set_note": "The full creative suite would be slow on this computer.",
+  "target_disk": "sdb",
+  "target_disk_choices": [
+    "sdb"
+  ],
+  "will_erase_windows": false,
+  "windows_present": true,
+  "refusals": [],
+  "welcome_text": "This computer has 4 GB of memory and a 3-core processor. Do you want to install Fabulous OS?"
+}
+--- disks
+NAME   RO RM TRAN     SIZE TYPE FSTYPE   MOUNTPOINT
+loop0   1  0          2.3G loop squashfs /run/live/rootfs/filesystem.squashfs
+sda     1  0 sata     477G disk          
+├─sda1  1  0          100M part vfat     
+├─sda2  1  0           16M part          
+├─sda3  1  0        475.9G part ntfs     
+└─sda4  1  0         1024M part ntfs     
+sdb     0  0 usb      500G disk          
+sr0     1  1 sata     2.4G rom  iso9660  /run/live/medium
+--- memory
+               total        used        free      shared  buff/cache   available
+Mem:            3883         424        3055          26         638        3459
+Swap:              0           0           0
+--- services that failed to start (empty = none)
+--- scanner
+ClamAV 1.4.3
+always-on scanner service: not-found
+signature updater: inactive
+=== FABULOUS SELFTEST BASIC DONE ===
+--- scanner detection test
