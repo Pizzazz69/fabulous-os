@@ -1,11 +1,1 @@
-restart-from-disk
-sleep 100
-snap
-key shift
-sleep 3
-type Qz7-mandala-Plum4
-key ret
-sleep 50
-click 900 250
-click 632 768
-sleep 30
+stop
