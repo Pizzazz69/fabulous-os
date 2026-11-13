@@ -1,2 +1,4 @@
-move 700 300
-sleep 1
+restart-from-disk
+sleep 75
+snap
+sleep 30
