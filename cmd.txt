@@ -1,1 +1,12 @@
-sleep 1
+click 900 250
+key meta_l
+sleep 3
+type konsole
+sleep 3
+key ret
+sleep 8
+key meta_l-pgup
+sleep 2
+type ls /usr/share/calamares/helpers /usr/sbin/ /usr/bin/ -d /usr/s?bin/*calamares* /usr/s?bin/*bootloader* /etc/calamares/scripts; grep -v -e ^# -e ^$ /etc/calamares/settings.conf
+key ret
+sleep 3
