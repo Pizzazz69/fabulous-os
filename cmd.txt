@@ -1,12 +1,21 @@
-click 900 250
-key meta_l
-sleep 3
-type konsole
-sleep 3
+type sudo dd of=/etc/calamares/modules/locale.conf
 key ret
-sleep 8
-key meta_l-up
+sleep 1
+type region: Europe
+key ret
+type zone: London
+key ret
+key ctrl-d
+sleep 1
+type exit
+key ret
 sleep 2
-type ls /etc/calamares/modules /etc/calamares/branding/debian /usr/share/sddm/themes; ls /usr/share/calamares; grep -n -i -e image -e text: -e source /etc/calamares/branding/debian/show.qml; grep -v -e ^# -e ^$ /etc/calamares/branding/debian/branding.desc
-key ret
-sleep 3
+dclick 58 45
+sleep 25
+key alt-n
+sleep 6
+snap
+key alt-n
+sleep 5
+key alt-n
+sleep 10
