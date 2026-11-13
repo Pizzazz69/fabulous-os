@@ -1,4 +1,6 @@
-restart-from-disk
-sleep 75
+key shift
+sleep 3
 snap
-sleep 30
+type Qz7-mandala-Plum4
+key ret
+sleep 45
