@@ -1,12 +1,18 @@
-type sudo dd of=/etc/calamares/modules/locale.conf
+key alt-c
+sleep 2
+snap
+key alt-y
+sleep 3
+key meta_l
+sleep 3
+type konsole
+sleep 3
 key ret
-sleep 1
-type region: Europe
+sleep 8
+type sudo blockdev --setro /dev/sda /dev/sda1 /dev/sda2 /dev/sda3 /dev/sda4; lsblk -o NAME,RO,RM,TRAN,SIZE
 key ret
-type zone: London
-key ret
-key ctrl-d
-sleep 1
+sleep 2
+snap
 type exit
 key ret
 sleep 2
@@ -14,8 +20,7 @@ dclick 58 45
 sleep 25
 key alt-n
 sleep 6
-snap
 key alt-n
 sleep 5
 key alt-n
-sleep 10
+sleep 12
