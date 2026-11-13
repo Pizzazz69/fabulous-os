@@ -1,1 +1,11 @@
-sleep 1
+dclick 58 45
+sleep 25
+snap
+key alt-n
+sleep 4
+snap
+key alt-n
+sleep 4
+snap
+key alt-n
+sleep 6
