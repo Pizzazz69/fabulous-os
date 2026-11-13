@@ -14,7 +14,7 @@ remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
 last=""; n=0; end=$(( $(date +%s) + MINUTES*60 ))
 publish() {
     vm shot "$VMDIR/s.png" >> log.txt 2>&1 && sudo cat "$VMDIR/s.png" > shot.png
-    sudo sh -c "cat $VMDIR/serial-*.log" | tr -d '\000' | tail -c 20000 > serial.txt
+    sudo sh -c "cat $VMDIR/serial-*.log" | tr -d '\000' | grep -av "Loading:" | tail -c 20000 > serial.txt
     echo "$1" > done.txt
     git add -A; git commit -q -m "screen $1" --allow-empty; git push -q -f "$remote" vm-screen
 }
@@ -30,7 +30,7 @@ while [ "$(date +%s)" -lt "$end" ]; do
             echo "cmd: $line"
             case "$line" in
                 snap) n=$((n+1)); vm shot "$VMDIR/s.png"; sudo cat "$VMDIR/s.png" > "snap-$n.png" ;;
-                restart-from-disk) vm_stop; vm_start disk full ;;
+                restart-from-disk) vm_stop; vm_internal_unchanged >> log.txt 2>&1; vm_start external full ;;
                 stop) publish "$sha"; vm_stop; exit 0 ;;
                 *) vm $line >> log.txt 2>&1 ;;
             esac
