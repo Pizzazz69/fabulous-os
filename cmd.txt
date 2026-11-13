@@ -1,20 +1,10 @@
-click 335 185
-sleep 5
-key alt-n
-sleep 6
-click 428 165
-type Test User
-click 428 347
+restart-from-disk
+sleep 100
+key shift
+sleep 3
 type Qz7-mandala-Plum4
-click 634 347
-type Qz7-mandala-Plum4
-sleep 2
-key alt-n
-sleep 6
-snap
-key alt-i
-sleep 4
-key alt-i
-sleep 240
-move 700 300
-sleep 200
+key ret
+sleep 50
+click 900 250
+click 632 768
+sleep 30
