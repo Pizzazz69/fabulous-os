@@ -1,2 +1,7 @@
+key meta_l
+sleep 3
+type install
+sleep 3
+snap
 key ret
 sleep 30
