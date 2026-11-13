@@ -1,7 +1,8 @@
-key meta_l
-sleep 3
-type install
-sleep 3
+click 1008 676
+sleep 6
 snap
-key ret
-sleep 30
+click 1008 676
+sleep 6
+snap
+click 1008 676
+sleep 10
