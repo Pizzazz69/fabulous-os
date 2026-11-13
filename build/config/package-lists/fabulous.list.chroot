@@ -48,3 +48,7 @@ plasma-discover-backend-flatpak
 # Browsers (Brave is added by a hook from Brave's repository)
 torbrowser-launcher
 curl
+
+# Security: firewall, on from the first start (DECISIONS.md, 13 November 2026)
+ufw
+iproute2

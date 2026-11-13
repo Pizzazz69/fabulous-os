@@ -1,0 +1,35 @@
+name: Remote-controlled test machine
+
+# Development aid (see tests/remote-vm.sh). Started by hand only.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Build run to take the image from
+        required: true
+      minutes:
+        description: How long to keep the test machine running
+        default: "45"
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  vm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: fabulous-os-image
+          path: image
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: Run the test machine
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -lh image
+          bash tests/remote-vm.sh "$(find "$PWD/image" -name '*.iso' | head -1)" "${{ inputs.minutes }}"

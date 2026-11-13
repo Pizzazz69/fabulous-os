@@ -8,16 +8,17 @@ import fabulous_rules as fr  # noqa: E402
 
 RULES = fr.load_rules()
 
+# The AWOW mini-PC as David described it on 13 November 2026 (expected profile, not a recording).
 MINIPC = {
     "arch": "x86_64",
-    "cpu": {"model": "Intel(R) Celeron(R) N5105 @ 2.00GHz", "cores": 4, "threads": 4,
+    "cpu": {"model": "Intel(R) Celeron(R) J4125 CPU @ 2.00GHz", "cores": 4, "threads": 4,
             "avx": False, "avx2": False, "avx512": False},
-    "memory": {"total_gb": 15.4, "available_gb": 14.1},
+    "memory": {"total_gb": 7.6, "available_gb": 6.6},
     "firmware": {"mode": "uefi", "secure_boot": True},
     "disks": [
-        {"name": "sda", "model": "Ultra Fit", "size_gb": 57.3, "removable": True,
+        {"name": "sdb", "model": "Card Reader", "size_gb": 119.1, "removable": True,
          "is_live_medium": True, "partitions": []},
-        {"name": "nvme0n1", "model": "AZW 512G", "size_gb": 476.9, "removable": False,
+        {"name": "sda", "model": "128GB SSD", "size_gb": 119.2, "removable": False,
          "is_live_medium": False, "partitions": []},
     ],
     "windows": {"present": True, "bitlocker": True},
@@ -33,32 +34,35 @@ def variant(**changes):
     return p
 
 
-def test_minipc_gets_e2b_with_slow_note():
+def test_awow_gets_no_gemma_under_the_current_rules():
+    """8 GB and no AVX2: the rules as written give no assistant. To be revisited
+    with real measurements in the Gemma step (DECISIONS.md, 13 November 2026)."""
     d = fr.decide(MINIPC, RULES)
+    assert d["model"] == "none" and d["model_label"] is None
+    assert d["app_set"] == "office"  # below 8 GB usable
+    assert d["target_disk"] == "sda"
+    assert d["refusals"] == []  # 119 GB disk is above the 64 GB minimum
+    assert d["will_erase_windows"] is True
+    assert "8 GB" in d["welcome_text"] and "Gemma" not in d["welcome_text"]
+
+
+def test_16gb_without_avx2_gets_e2b_with_slow_note():
+    d = fr.decide(variant(memory__total_gb=15.4), RULES)
     assert d["model"] == "e2b"
     assert any("answer slowly" in n for n in d["model_notes"])
     assert d["app_set"] == "full"
-    assert d["target_disk"] == "nvme0n1"
-    assert d["refusals"] == []
-    assert d["will_erase_windows"] is True
     assert "16 GB" in d["welcome_text"] and "Gemma 4 E2B" in d["welcome_text"]
 
 
 def test_16gb_with_avx2_gets_e4b():
-    d = fr.decide(variant(cpu__avx2=True), RULES)
+    d = fr.decide(variant(cpu__avx2=True, memory__total_gb=15.4), RULES)
     assert d["model"] == "e4b" and d["model_notes"] == []
 
 
 def test_8gb_with_avx2_gets_e2b():
-    d = fr.decide(variant(cpu__avx2=True, memory__total_gb=7.7), RULES)
+    d = fr.decide(variant(cpu__avx2=True), RULES)
     assert d["model"] == "e2b"
     assert d["app_set"] == "office"  # below 8 GB
-
-
-def test_8gb_without_avx2_gets_no_model():
-    d = fr.decide(variant(memory__total_gb=7.7), RULES)
-    assert d["model"] == "none" and d["model_label"] is None
-    assert "Gemma" not in d["welcome_text"]
 
 
 def test_4gb_gets_no_model_and_office():
@@ -94,8 +98,8 @@ def test_low_battery_refused():
 
 def test_largest_internal_disk_preferred():
     p = copy.deepcopy(MINIPC)
-    p["disks"].append({"name": "sdb", "model": "Big", "size_gb": 931.5, "removable": False,
+    p["disks"].append({"name": "sdc", "model": "Big", "size_gb": 931.5, "removable": False,
                        "is_live_medium": False, "partitions": []})
     d = fr.decide(p, RULES)
-    assert d["target_disk"] == "sdb"
-    assert d["target_disk_choices"] == ["nvme0n1", "sdb"]
+    assert d["target_disk"] == "sdc"
+    assert d["target_disk_choices"] == ["sda", "sdc"]

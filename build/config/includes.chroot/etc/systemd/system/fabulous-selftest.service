@@ -1,0 +1,17 @@
+[Unit]
+Description=Fabulous OS self-check (test machines only)
+# Runs only when a test machine hands the system a "fabulous.selftest" credential.
+# A real PC never does, so on real hardware this does nothing.
+ConditionCredential=fabulous.selftest
+ConditionVirtualization=vm
+After=multi-user.target network-online.target ufw.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ImportCredential=fabulous.selftest
+ExecStart=/usr/local/sbin/fabulous-selftest
+TimeoutStartSec=1200
+
+[Install]
+WantedBy=graphical.target

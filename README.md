@@ -7,6 +7,7 @@ Status: early development. Nothing here has been installed on real hardware yet.
 - `build/` — image recipe (Debian live-build)
 - `packages/fabulous-probe/` — reads the computer's hardware, changes nothing
 - `rules/` — chooses the Gemma model and app set from the hardware profile
+- `tests/` — tools that drive the build servers' test machines
 - `DECISIONS.md` — what was decided and why
 - `.github/workflows/build.yml` — builds the image and test-starts it
 

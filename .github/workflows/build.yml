@@ -68,7 +68,9 @@ jobs:
           shoot() {  # name, extra qemu args...
             name=$1; shift
             sudo qemu-system-x86_64 $accel -m 4096 -smp 2 -display none -vga std \
-              -cdrom "$iso" -monitor unix:/tmp/mon-$name,server,nowait -daemonize "$@"
+              -cdrom "$iso" -monitor unix:/tmp/mon-$name,server,nowait -daemonize \
+              -serial file:/tmp/$name-serial.log \
+              -smbios type=11,value=io.systemd.credential:fabulous.selftest=basic "$@"
             sleep 12
             echo "screendump /tmp/$name-menu.ppm" | sudo socat - unix-connect:/tmp/mon-$name || true
             echo "sendkey ret" | sudo socat - unix-connect:/tmp/mon-$name || true
@@ -78,6 +80,8 @@ jobs:
             echo quit | sudo socat - unix-connect:/tmp/mon-$name || true
             sudo convert /tmp/$name-menu.ppm shots/$name-menu.png || true
             sudo convert /tmp/$name.ppm shots/$name.png || true
+            sudo cat /tmp/$name-serial.log > shots/$name-selfcheck.txt || true
+            echo "=== self-check from $name ==="; cat shots/$name-selfcheck.txt
           }
           sudo apt-get install -y --no-install-recommends socat
           cp /usr/share/OVMF/OVMF_VARS_4M.ms.fd /tmp/vars.fd

@@ -87,11 +87,16 @@ def _role(part):
     return "other"
 
 
-def parse_lsblk(text, live_medium=None):
+def parse_lsblk(text, live_medium=None, mmc_types=None):
     """Parse `lsblk -J -b -o NAME,SIZE,TYPE,TRAN,RM,MODEL,PTTYPE,FSTYPE,PARTTYPENAME,MOUNTPOINT`.
 
     live_medium: name of the disk the live system started from (never a target).
+    mmc_types: {"mmcblk0": "MMC", "mmcblk1": "SD"} as read from /sys/block/*/device/type.
+        Built-in eMMC storage and an SD card in the card slot both appear as "mmcblk"
+        disks that are not marked removable, so the type is the only way to tell them apart.
+        An SD card is treated as removable: never an install target.
     """
+    mmc_types = mmc_types or {}
     data = json.loads(text)
     disks = []
     for dev in data.get("blockdevices", []):
@@ -100,6 +105,8 @@ def parse_lsblk(text, live_medium=None):
         name = dev["name"]
         if name.startswith(("loop", "ram", "zram", "sr")):
             continue
+        if re.fullmatch(r"mmcblk\d+(boot\d+|rpmb)", name):
+            continue  # eMMC housekeeping areas, not disks
         parts = []
         for child in dev.get("children") or []:
             if child.get("type") != "part":
@@ -110,7 +117,8 @@ def parse_lsblk(text, live_medium=None):
                 "role": _role(child),
                 "size_gb": round(int(child.get("size") or 0) / GIB, 1),
             })
-        removable = bool(dev.get("rm")) or dev.get("tran") == "usb"
+        removable = (bool(dev.get("rm")) or dev.get("tran") == "usb"
+                     or mmc_types.get(name, "").upper() in ("SD", "SDIO"))
         disks.append({
             "name": name,
             "model": (dev.get("model") or "").strip(),
@@ -193,11 +201,25 @@ def find_live_medium():
     return parent or os.path.basename(src)
 
 
+def collect_mmc_types():
+    out = {}
+    try:
+        names = [n for n in os.listdir("/sys/block") if n.startswith("mmcblk")]
+    except OSError:
+        names = []
+    for n in names:
+        kind = _read(f"/sys/block/{n}/device/type").strip()
+        if kind:
+            out[n] = kind
+    return out
+
+
 def collect():
     disks = parse_lsblk(
         _run(["lsblk", "-J", "-b", "-o",
               "NAME,SIZE,TYPE,TRAN,RM,MODEL,PTTYPE,FSTYPE,PARTTYPENAME,MOUNTPOINT"]) or '{"blockdevices": []}',
         live_medium=find_live_medium(),
+        mmc_types=collect_mmc_types(),
     )
     return {
         "arch": platform.machine(),

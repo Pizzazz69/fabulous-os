@@ -1,0 +1,38 @@
+#!/bin/sh
+# Firewall and virus scanner. Failures are reported as FABULOUS-WARNING, not hidden.
+set -e
+export DEBIAN_FRONTEND=noninteractive
+
+# Firewall: on at every start, in the stick session and in the installed system.
+# ufw's defaults are: refuse everything incoming, allow everything outgoing.
+if [ -f /etc/ufw/ufw.conf ]; then
+    sed -i 's/^ENABLED=.*/ENABLED=yes/' /etc/ufw/ufw.conf
+    sed -i 's/^DEFAULT_INPUT_POLICY=.*/DEFAULT_INPUT_POLICY="DROP"/' /etc/default/ufw
+    systemctl enable ufw.service || echo "FABULOUS-WARNING: could not enable the firewall service"
+    grep -q '^ENABLED=yes' /etc/ufw/ufw.conf || echo "FABULOUS-WARNING: firewall not switched on"
+else
+    echo "FABULOUS-WARNING: ufw not installed; no firewall"
+fi
+
+# Firewall page in System Settings.
+apt-get install -y plasma-firewall || echo "FABULOUS-WARNING: plasma-firewall not installed; no firewall settings page"
+
+# Virus scanner, scan-on-request only. No always-on scanning service (clamav-daemon):
+# it would hold over 1 GB of memory.
+if apt-get install -y --no-install-recommends clamav clamav-freshclam; then
+    # The signature updater must not download hundreds of MB into memory when
+    # running from the stick; it runs only on an installed system.
+    mkdir -p /etc/systemd/system/clamav-freshclam.service.d
+    printf '[Unit]\nConditionPathExists=!/run/live/medium\n' \
+        > /etc/systemd/system/clamav-freshclam.service.d/fabulous-not-on-stick.conf
+else
+    echo "FABULOUS-WARNING: ClamAV not installed"
+fi
+# A window for the scanner, if Debian 13 still carries it.
+apt-get install -y clamtk || echo "FABULOUS-WARNING: clamtk not installed; scanner has no window yet"
+
+# Self-check used by the build servers' test machines (see the script for when it runs).
+chmod 0755 /usr/local/sbin/fabulous-selftest
+systemctl enable fabulous-selftest.service || echo "FABULOUS-WARNING: self-check not enabled"
+
+apt-get clean
