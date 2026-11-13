@@ -1,9 +1,9 @@
-click 428 165
-type Test User
-click 428 345
-type fabtest123
-click 634 345
-type fabtest123
+click 428 349
+key ctrl-a
+type Qz7-mandala-Plum4
+click 634 349
+key ctrl-a
+type Qz7-mandala-Plum4
 sleep 2
 snap
 click 1008 676
