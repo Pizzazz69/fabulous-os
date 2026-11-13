@@ -1,2 +1,2 @@
-key alt-i
-sleep 4
+move 700 300
+sleep 1
