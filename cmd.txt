@@ -1,5 +1,13 @@
-click 335 185
-sleep 5
+click 428 165
+type Test User
+click 428 345
+type fabtest123
+click 634 345
+type fabtest123
+sleep 2
 snap
 click 1008 676
 sleep 6
+snap
+click 1008 676
+sleep 5
