@@ -31,4 +31,12 @@ fi
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo \
     || echo "FABULOUS-WARNING: Flathub not added"
 
+# Tor Browser's launcher brings a background Tor service that would connect to the
+# Tor network at every start without being asked. Tor Browser carries its own Tor, so
+# the background service is switched off.
+if dpkg -s tor >/dev/null 2>&1; then
+    systemctl disable tor.service 2>/dev/null || true
+    systemctl mask tor.service tor@default.service || echo "FABULOUS-WARNING: background Tor service not switched off"
+fi
+
 apt-get clean

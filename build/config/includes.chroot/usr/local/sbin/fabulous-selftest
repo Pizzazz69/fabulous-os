@@ -10,6 +10,8 @@ echo "=== FABULOUS SELFTEST BEGIN (mode: $mode) ==="
 echo "system: $PRETTY_NAME"
 echo "started from: $([ -e /run/live/medium ] && echo stick || echo installed-disk)"
 echo "kernel: $(uname -r)"
+ls -l /etc/os-release /usr/lib/os-release* 2>&1
+echo "timezone: $(cat /etc/timezone 2>/dev/null)  language: ${LANG:-$(grep -h ^LANG= /etc/default/locale 2>/dev/null)}"
 echo "--- secure boot"
 mokutil --sb-state
 echo "--- firewall"

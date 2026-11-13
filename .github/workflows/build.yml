@@ -92,6 +92,10 @@ jobs:
           shoot legacy-bios
           ls -l shots
 
+      - name: Install onto a blank test disk, restart from it, and check
+        run: |
+          ISO=$(ls "$PWD"/build/*.iso) OUT="$PWD/shots" bash tests/install-test.sh
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -101,6 +105,7 @@ jobs:
             build/build.log
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: fabulous-os-image
           path: |

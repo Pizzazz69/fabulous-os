@@ -16,6 +16,30 @@ VERSION_CODENAME=trixie
 ID=debian
 HOME_URL="https://github.com/Pizzazz69/fabulous-os"
 EOT
+# Build 5's self-check showed the running system still calling itself Debian, so
+# the name is also placed directly at /etc/os-release, which every program reads first.
+rm -f /etc/os-release
+cp /usr/lib/os-release /etc/os-release
+ls -l /etc/os-release /usr/lib/os-release*
+grep -q 'Fabulous OS' /etc/os-release || echo "FABULOUS-WARNING: system name not set"
+
+# Installer: ask "are you sure?" before anything is erased (Debian's setting starts at once),
+# and start from London rather than New York for place, clock and date style.
+cs=/etc/calamares/settings.conf
+if [ -f "$cs" ]; then
+    if grep -q '^prompt-install:' "$cs"; then sed -i 's/^prompt-install:.*/prompt-install: true/' "$cs"
+    else printf '\nprompt-install: true\n' >> "$cs"; fi
+else
+    echo "FABULOUS-WARNING: $cs not found; installer erases without asking"
+fi
+lc=/etc/calamares/modules/locale.conf
+[ -f "$lc" ] || cp /usr/share/calamares/modules/locale.conf "$lc" 2>/dev/null || true
+if [ -f "$lc" ]; then
+    sed -i -E 's/^region:.*/region: "Europe"/; s/^zone:.*/zone: "London"/' "$lc"
+    grep -q '^zone: "London"' "$lc" || echo "FABULOUS-WARNING: installer still starts in New York"
+else
+    echo "FABULOUS-WARNING: installer locale settings not found; it starts in New York"
+fi
 
 # Installer wording. bootloaderEntryName is deliberately left as Debian (see above).
 desc=/etc/calamares/branding/debian/branding.desc
