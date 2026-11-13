@@ -1,8 +1,5 @@
-click 1008 676
-sleep 6
+click 335 185
+sleep 5
 snap
 click 1008 676
 sleep 6
-snap
-click 1008 676
-sleep 10
