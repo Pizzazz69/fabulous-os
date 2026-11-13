@@ -1,41 +1,11 @@
-click 900 250
-key meta_l
-sleep 3
-type konsole
-sleep 3
-key ret
-sleep 8
-type sudo sed -i s/Fallback:.true/Fallback:.false/ /etc/calamares/modules/bootloader.conf; grep Fallback /etc/calamares/modules/bootloader.conf
-key ret
-sleep 2
+restart-from-disk
+sleep 100
 snap
-type exit
+key shift
+sleep 3
+type Qz7-mandala-Plum4
 key ret
-sleep 2
-dclick 58 45
-sleep 25
-key alt-n
-sleep 6
-key alt-n
-sleep 5
-key alt-n
-sleep 12
-click 335 185
-sleep 5
-key alt-n
-sleep 6
-click 428 165
-type Test User
-click 428 347
-type Qz7-mandala-Plum4
-click 634 347
-type Qz7-mandala-Plum4
-sleep 2
-key alt-n
-sleep 6
-key alt-i
-sleep 4
-key alt-i
-sleep 200
-move 700 300
-sleep 130
+sleep 50
+click 900 250
+click 632 768
+sleep 30
