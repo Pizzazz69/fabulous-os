@@ -1,6 +1,1 @@
-key shift
-sleep 3
-snap
-type Qz7-mandala-Plum4
-key ret
-sleep 45
+stop
