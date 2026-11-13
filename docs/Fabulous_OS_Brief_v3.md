@@ -110,7 +110,7 @@ Small items to fold in along the way:
 - Rename the stick's start-up menu; replace the remaining Debian wording and pictures.
 - Settle automatic updates (see section 4).
 
-Each build takes about 20 minutes, plus about 30 minutes of testing.
+Each build now takes about 40 minutes in all: about 20 to build and about 20 to test.
 
 **After step 4:** David tries the stick on the Beelink in "Try it first" mode, which changes nothing. Only after that, and after a backup, comes a real install. David may try "Try it first" earlier if he wishes; see section 9.
 
