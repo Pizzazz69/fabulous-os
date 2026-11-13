@@ -1,3 +1,4 @@
-type clear; find /usr /etc -name bootloader-config; grep -v -e '#' /usr/sbin/bootloader-config
+key ctrl-c
+type clear; find /usr /etc -name bootloader-config; grep -c . /usr/sbin/bootloader-config; grep -n -e grub -e shim -e efi /usr/sbin/bootloader-config
 key ret
 sleep 3
