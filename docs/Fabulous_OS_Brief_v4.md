@@ -44,7 +44,7 @@ Build **Fabulous OS**: a Linux system based on **Debian 13**, delivered as an im
 
 ## 4. Decisions
 
-Decisions of 12 November stand (see `DECISIONS.md`): replace Windows completely; Debian's drivers; KDE Plasma in Windows 11 style; mandala wallpaper; Brave and Tor Browser, no Firefox; no email; Discover app store with Flathub; built on GitHub's servers; Debian 13; Gemma 4 E2B for the Beelink with a "will answer slowly" note; internal ID stays "debian".
+Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows completely", which is withdrawn: Debian's drivers; KDE Plasma in Windows 11 style; mandala wallpaper; Brave and Tor Browser, no Firefox; no email; Discover app store with Flathub; built on GitHub's servers; Debian 13; Gemma 4 E2B for the Beelink with a "will answer slowly" note; internal ID stays "debian".
 
 **Added 13 November 2026:**
 
@@ -122,7 +122,7 @@ Each build takes 40 to 50 minutes in all, of which about 25 is testing.
 1. Claude changes files in the repository and uploads them to GitHub.
 2. GitHub's servers build the image inside Debian 13 (about 15 minutes).
 3. The servers start the image in two test machines, photograph the screens, and record the self-check.
-4. The servers install the image onto a blank test disk, restart from it, log in, and check it.
+4. The servers install the image onto an external test drive beside a pretend Windows disk, wipe the firmware's memory, start from the external drive, log in, check it, and confirm the Windows disk is unchanged.
 5. Claude views the screenshots, self-checks and build log, and records the result in `TESTING.md`.
 6. When a build is ready for David, he downloads the image from the repository's **Actions** page on github.com.
 
