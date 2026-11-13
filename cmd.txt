@@ -1,3 +1,1 @@
-type clear; cat -A /etc/calamares/modules/bootloader.conf
-key ret
-sleep 3
+stop
