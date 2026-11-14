@@ -190,3 +190,18 @@ The window on the installed system shows the two new buttons (screenshot `instal
 - A human voice, a long recording, music, MP3 and FLAC files (only a 4-second WAV).
 - A microphone. Gemma listens to files only; there is no "record" button.
 - Speed on the Beelink: expect more than the 3 minutes per picture seen here.
+
+## 14 November 2026, evening: internal disks on the installed system (build 12)
+
+Run 43620875841, 5.7 GB, no build warnings, all tests 0 problems (Gemma's tests as in build 11).
+
+| What | How | Result |
+| --- | --- | --- |
+| Installed system makes the internal disk read-only at start | Self-check on the installed system: `lsblk` shows the internal disk `sda` with RO = 1 and the external drive `sdb` with RO = 0; the service is active and logged "internal disk sda is read-only (Fabulous OS runs from sdb)" | **Pass** |
+| Stick session still protects the internal disk (the code was moved into a shared script) | Self-check in the stick phase: `sda` RO = 1 | Pass |
+| Install test, option B | 16 screenshots, internal disk compared before and after | Pass, byte-for-byte unchanged |
+
+Not tested: a real PC; a stick that is a real USB device (the test "stick" is a virtual CD drive, so
+the part that works out the stick's own disk from a USB partition has not run); opening the Windows
+disk in the file manager on the installed system (whether it opens read-only or refuses);
+a BitLocker-encrypted Windows disk; a PC with more than one internal disk.
