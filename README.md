@@ -5,6 +5,8 @@ A Linux system based on Debian 13, with an offline AI assistant (Gemma 4), deliv
 Status: early development. Nothing here has been installed on real hardware yet. See `TESTING.md`.
 
 - `build/` — image recipe (Debian live-build)
+- `models.lock` — the Gemma file the image carries, pinned by checksum
+- `packages/fabulous-gemma/` — the assistant and its chat window
 - `packages/fabulous-probe/` — reads the computer's hardware, changes nothing
 - `rules/` — chooses the Gemma model and app set from the hardware profile
 - `tests/` — tools that drive the build servers' test machines

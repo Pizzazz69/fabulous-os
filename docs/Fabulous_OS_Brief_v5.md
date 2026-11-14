@@ -1,8 +1,8 @@
-# Fabulous OS: Brief, version 4
+# Fabulous OS: Brief, version 5
 
 **A Linux system with an offline AI assistant (Gemma 4), run from an external drive beside an untouched Windows PC**
 
-Prepared for David, 13 November 2026 (evening). This replaces brief version 3 of the same morning. Where the two disagree, this one wins.
+Prepared for David, 14 November 2026. This replaces brief version 4 of 13 November. Where the two disagree, this one wins.
 
 ---
 
@@ -19,14 +19,15 @@ Prepared for David, 13 November 2026 (evening). This replaces brief version 3 of
 | | |
 | --- | --- |
 | Project home | GitHub repository `Pizzazz69/fabulous-os` (public) |
-| Latest image | Build 8, 2.5 GB, built on GitHub's servers |
+| Latest image | Build 10, 5.5 GB (was 2.5 GB; Gemma's file is 3.35 GB), built on GitHub's servers |
 | Plan ("option B") | Fabulous OS lives on an **external USB SSD**. The Beelink's internal disk and Windows are never changed. To go back: unplug the drive. |
 | Installer | Tested automatically: installs onto an external drive, which then starts by itself under Secure Boot. The internal disk was byte-for-byte unchanged. |
 | Protection | When started from the stick, every internal disk is read-only; the installer offers only external drives. |
 | Firewall, virus scanner, Secure Boot | Checked from inside the installed system. |
 | Tested on the Beelink | Not yet. Nothing has run on any real PC. |
 | External SSD | David is buying one (a known brand, 250 GB or more). |
-| Gemma 4 | Not yet included |
+| Gemma 4 | **Included from build 10.** Answers in test machines, including one shaped like the Beelink (no AVX, 16 GB). Speed on the real Beelink is unmeasured. |
+| Office and creative apps | Not yet included (next step) |
 
 ---
 
@@ -62,21 +63,34 @@ Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows com
 | Branding | Mandala in the installer and on the log-in screen; "based on Debian" on the installer's picture; app store labelled "App Store". | David's request. |
 | Brave | Kept. | The "KDE Wallet" question does not appear on an installed system. |
 
+**Added 14 November 2026 (Gemma):**
+
+| Topic | Decision | Reason |
+| --- | --- | --- |
+| Model | Gemma 4 E2B, Google's own file (3.35 GB), fixed to one revision and its checksum in `models.lock`. The build refuses anything else. | Non-negotiable 5. Apache 2.0 licence, shipped. |
+| Where the model lives | Inside the image. Nothing is downloaded on the PC. | Offline from the first start. |
+| Pictures and audio | Left out (Google's 1 GB add-on). Text chat only. | Smaller image. David can ask for it. |
+| Program that runs Gemma | llama.cpp, built from source at one fixed version (`build/llama.lock`) on the build server. Not from Debian. | Debian 13 has nothing that runs Gemma 4. MIT licence, shipped. |
+| Network | The assistant is started with no network at all, and refuses to start if that cannot be arranged. | Non-negotiable 4, enforced by the system. |
+| Window | "Gemma", on the taskbar and in the start menu. | — |
+| KDE Connect | Removed. | It listened on the network and announced the PC as soon as the desktop started, unasked. Can be reinstalled from the App Store. David may reverse this. |
+
 ---
 
 ## 5. What exists today
 
-**In the repository:** `build/` (the recipe), `packages/fabulous-probe/` (reads a PC's hardware), `rules/` (chooses the Gemma model and app set), `tests/` (drives the test machines; the install test), `.github/workflows/` (build, test, publish screenshots), `DECISIONS.md`, `TESTING.md`, `docs/` (this brief).
+**In the repository:** `build/` (the recipe), `models.lock` (which Gemma file, and its checksum), `packages/fabulous-gemma/` (the assistant and its window), `packages/fabulous-probe/` (reads a PC's hardware), `rules/` (chooses the Gemma model and app set), `tests/` (drives the test machines; the install test), `.github/workflows/` (build, test, publish screenshots), `DECISIONS.md`, `TESTING.md`, `docs/` (this brief).
 
-**In the image (build 8):**
+**In the image (build 10):**
 
 - Desktop: name, mandala, centred taskbar, Brave, Tor Browser launcher, app store with Flathub.
 - Debian's installer, renamed, with mandala pictures, starting in London, asking before it erases, putting start-up files where an external drive needs them.
 - Stick-session protection: internal disks read-only.
 - Firewall (ufw), on. ClamAV, its window, and the fetch-signatures-when-opened service.
-- The probe and rules programs (not yet used by the installer), and the self-check.
+- Gemma 4 E2B, the program that runs it, the chat window, and their licences.
+- The probe and rules programs (not yet used by the installer; the Gemma window does use the rules), and the self-check.
 
-**Tests that pass:** 19 automated tests of the probe and rules; image build; start to the desktop in both test machines; the automated install test for option B; the self-checks listed in `TESTING.md`.
+**Tests that pass (build 10):** 35 automated tests of the probe, rules and assistant; image build with no warnings; start to the desktop in both test machines; Gemma answering in three test machines; the automated install test for option B, now ending with a question typed into the Gemma window; the self-checks listed in `TESTING.md`.
 
 ---
 
@@ -88,7 +102,13 @@ Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows com
 - The log-in screen still shows a small "debian" logo. The installer's heading still says "Calamares installer". The stick's start-up menu says "Debian GNU/Linux", and the installed system's will say "Debian".
 - Not tested: opening the Virus Scanner from the menu; the daily update pop-up; the "App Store" label; Brave in the stick session; Tor Browser; the app store itself.
 - Brave's privacy setting names are unchecked.
-- No Gemma, no LibreOffice, no creative apps. Gemma from an external drive is untested.
+- No LibreOffice, no creative apps.
+- **Gemma's speed on the Beelink is unmeasured.** The test machines hide AVX from a server processor whose cores are faster than the N5105's; they gave about 5 tokens (roughly 4 words) a second. Expect the Beelink to be slower than that; how much slower is not known.
+- Gemma took about 3 minutes to load when started from the image in a test machine, and 12 seconds from the installed external test drive. Times from a real stick and a real SSD are unmeasured.
+- Gemma's window: only opening it and one typed question were tested. Not tested: Stop, New chat, a long conversation, closing mid-answer, opening it twice, the window in "Try it first".
+- The assistant's lack of network was checked by listing what it can see (only a switched-off loopback device), not by trying to connect out from inside it.
+- The quality of Gemma's answers was not assessed, beyond three short answers being sensible.
+- That nothing listens on the network once the desktop is up was seen in the two machines started from the image. On the installed system the check still runs before log-in.
 - The plain-question installer screens are not built; the installer does not use the probe and rules.
 - The probe's test data is the expected profile of the Beelink, not a recording.
 - The mandala is not yet in a folder David can open and edit.
@@ -100,8 +120,8 @@ Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows com
 ## 7. Next steps, in order
 
 1. ~~Automated install test.~~ Done 13 November, then redone for option B.
-2. **Gemma 4.** The assistant program, the model and the chat window. Include a test on a machine without AVX2.
-3. **Office and creative apps.**
+2. ~~Gemma 4.~~ Done 14 November (builds 9 and 10), tested on a machine without AVX.
+3. **Office and creative apps.** Next.
 4. **The plain-question installer screens**, including the typed confirmation.
 
 Small items to fold in along the way:
@@ -111,9 +131,9 @@ Small items to fold in along the way:
 - Check Brave's settings.
 - Put the mandala and the plain background in a folder the user can open.
 
-Each build takes 40 to 50 minutes in all, of which about 25 is testing.
+Each build now takes about 60 minutes in all (Gemma made the image and the tests bigger).
 
-**When David has the SSD:** he may try "Try it first" on the Beelink at any time; it cannot change the internal disk. Installing onto the SSD is reasonably safe from build 8 on, with the SSD being the only thing that can be erased, but Claude would prefer the typed confirmation (step 4) first.
+**When David has the SSD:** he may try "Try it first" on the Beelink at any time; it cannot change the internal disk. Installing onto the SSD is reasonably safe from build 8 on (build 10 is the one with Gemma), with the SSD being the only thing that can be erased, but Claude would prefer the typed confirmation (step 4) first.
 
 ---
 
@@ -122,18 +142,18 @@ Each build takes 40 to 50 minutes in all, of which about 25 is testing.
 1. Claude changes files in the repository and uploads them to GitHub.
 2. GitHub's servers build the image inside Debian 13 (about 15 minutes).
 3. The servers start the image in two test machines, photograph the screens, and record the self-check.
-4. The servers install the image onto an external test drive beside a pretend Windows disk, wipe the firmware's memory, start from the external drive, log in, check it, and confirm the Windows disk is unchanged.
+4. The servers install the image onto an external test drive beside a pretend Windows disk, wipe the firmware's memory, start from the external drive on a machine shaped like the Beelink (no AVX, 16 GB), log in, check it, ask Gemma a question, and confirm the Windows disk is unchanged.
 5. Claude views the screenshots, self-checks and build log, and records the result in `TESTING.md`.
 6. When a build is ready for David, he downloads the image from the repository's **Actions** page on github.com.
 
-Claude can see the screenshots and logs, but cannot download the image itself. Claude can also operate a test machine step by step ("Remote-controlled test machine").
+Claude can see the screenshots and logs (on the `test-results` branch), but cannot download the image itself. Claude's workspace can reach GitHub and Google's Gemma repository, so llama.cpp and Gemma can be tried there before a build. Claude can also operate a test machine step by step ("Remote-controlled test machine").
 
 ---
 
 ## 9. What David will be asked to do
 
 1. **Buy an external SSD:** a known brand (Samsung, Crucial, SanDisk, Kingston) from a known UK retailer, 250 GB or more. Not the "128 TB for £30" kind; those are fakes.
-2. **When an image is ready to try:** download it from GitHub, write it to the stick with balenaEtcher, and start the Beelink from the stick by tapping the boot key at power-on (usually F7 on a Beelink). Claude will supply a step-by-step guide.
+2. **When an image is ready to try:** download it from GitHub (5.5 GB from build 10), write it to the stick with balenaEtcher, and start the Beelink from the stick by tapping the boot key at power-on (usually F7 on a Beelink). Claude will supply a step-by-step guide.
 3. **"Try it first":** look around the desktop, check Wi-Fi and sound, and report what you see.
 4. **Install:** plug in the SSD, run the installer, choose the SSD. Everything on the SSD is erased. The internal disk is read-only throughout.
 5. **Afterwards:** tap F7 at power-on and choose the SSD to start Fabulous OS. Unplug it, or just don't press F7, and the PC starts Windows as before.
@@ -156,6 +176,8 @@ Never paste a password into the chat. Claude's access to GitHub works through th
 9. Report truthfully: say what was tested, how, and what was not.
 
 Not yet met: 3 (yes/no only), and 6 for Tor Browser and the app store (included but never opened).
+
+Met on 14 November: 5 (Gemma from Google's repository, checksum enforced, licence shipped). Non-negotiable 4 for the assistant is enforced by starting it without a network.
 
 Non-negotiable 4, as David clarified on 13 November: a daily check for updates with a pop-up is acceptable; installing is by his click.
 
@@ -185,6 +207,23 @@ Non-negotiable 4, as David clarified on 13 November: a daily check for updates w
 
 **Mistakes by Claude this session.** A test helper had a wrong file path. The first London fix did not work. An edit for build 7 deleted the lines that put "Fabulous OS" in the installer's wording. A hand test of the start-up fix was spoiled by a mistyped command, costing about 20 minutes. Two scratch branches (`vm-control`, `vm-screen`) remain in the repository.
 
+### Session of 14 November 2026 (Gemma)
+
+**Facts corrected.** The N5105 has no AVX at all, not only no AVX2 (Intel lists SSE4.2 as its highest). The Gemma file is 3.35 GB, not "about 3 GB". Debian 13 carries no program that runs Gemma 4.
+
+**Tried in Claude's workspace first.** llama.cpp built; Google's file downloaded and its checksum matched; Gemma answered. With only SSE4.2: 5 tokens a second; with everything: 14 (2 cores). Memory in use: 3.47 GB.
+
+| Build | Result |
+| --- | --- |
+| 9 | Gemma in the image. Answered on the modern test machine (21.6 tokens a second). Install test and no-AVX test failed: Claude had given those machines 8 GB, where the rules correctly allow no Gemma on a no-AVX processor. |
+| 10 | Test machines shaped like the Beelink (no AVX, 16 GB). All tests passed, 0 problems, no build warnings. No-AVX: 5.4 tokens a second from the image, 5.0 from the installed external drive. Gemma window opened from the start menu and answered a typed question. KDE Connect removed. |
+
+**Found by testing.** KDE Connect listened on the network and announced the PC once the desktop was up; earlier self-checks ran before the desktop and missed it. After its removal nothing was listening in either machine started from the image.
+
+**Mistakes by Claude this session.** The 8 GB test machines (cost one build, about an hour). Gemma's "cannot run" message at first used the installer's wording ("will install without it"). The first build's saved copies of llama.cpp and the model were thrown away because a later test failed, so build 10 fetched and built them again.
+
+**Interrupted once.** David stopped the first llama.cpp build to say the project had gone back to the Beelink; the N5105 is the Beelink's processor, so nothing changed.
+
 ---
 
 ## 12. Short glossary
@@ -206,14 +245,24 @@ Non-negotiable 4, as David clarified on 13 November: a daily check for updates w
 | KDE Plasma | The desktop: taskbar, start menu, windows, settings. |
 | Discover | The app store. Search, press Install or Remove. |
 | Flathub | A large online collection of Linux apps that Discover can install from. |
-| AVX2 | Processor instructions that make AI models faster. The N5105 lacks them. |
-| Gemma 4 E2B | The smaller of the two Gemma 4 models considered; about 3 GB. |
+| AVX, AVX2 | Processor instructions that make AI models faster. The N5105 has neither. |
+| Gemma 4 E2B | The smaller of the two Gemma 4 models considered; 3.35 GB. |
+| llama.cpp | The open-source program that runs Gemma on the PC. |
+| Token | A piece of a word. Gemma writes in tokens; 5 tokens a second is roughly 4 words a second. |
 
 ---
 
-## 13. Sources checked on 13 November 2026
+## 13. Sources checked
+
+Checked on 13 November 2026:
 
 - Celeron J4125 instruction set (SSE4.2 highest): https://www.intel.com/content/www/us/en/products/sku/197305/intel-celeron-processor-j4125-4m-cache-up-to-2-70-ghz/specifications.html
 - AWOW 8 GB / 128 GB J4125 model: https://www.galaxus.ch/en/s1/product/awow-mini-pc-win11-pro-celeron-j4125-8gb-ram-128gb-m2-pc-21876616
 
-Not re-checked today: Debian 13 support dates, Gemma 4 files, the N5105's lack of AVX2, the ArtCraft apps. The statements about ClamAV's memory use and what it detects are from Claude's general knowledge, not checked against a source today.
+Checked on 14 November 2026:
+
+- Celeron N5105 instruction set (SSE4.2 highest): https://www.intel.com/content/www/us/en/products/sku/212328/intel-celeron-processor-n5105-4m-cache-up-to-2-90-ghz/specifications.html
+- Google's Gemma 4 E2B file, licence and checksum: https://huggingface.co/google/gemma-4-E2B-it-qat-q4_0-gguf/tree/main
+- llama.cpp releases: https://github.com/ggml-org/llama.cpp/releases
+
+Not re-checked on 14 November: Debian 13 support dates, the ArtCraft apps. The statements about ClamAV's memory use and what it detects are from Claude's general knowledge, not checked against a source today.

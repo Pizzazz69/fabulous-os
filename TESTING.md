@@ -96,3 +96,53 @@ The test machine now has Secure Boot enforcing, an internal 477 GB disk laid out
 - "App Store" label; Brave in the stick session (Wallet switched off there).
 - A real external SSD, a real PC, a real Windows disk with BitLocker. The pretend Windows disk cannot start, so "unplug and Windows starts as before" is argued from the disk being unchanged, not observed.
 - Gemma from an external drive.
+
+## 14 November 2026: Gemma 4 (builds 9 and 10)
+
+"Tokens" are pieces of words; 5 tokens a second is roughly 4 words a second.
+The no-AVX test machines are virtual PCs whose processor is presented as a "Westmere"
+(SSE4.2 highest, like the Beelink's N5105) with 4 cores and 16 GB. The cores underneath are a
+server's and are faster than the N5105's, so **these speeds are not the Beelink's speeds**.
+
+### In Claude's workspace (2 cores of a 2.3 GHz Xeon, 7.8 GB), before any build
+
+| What | How | Result |
+| --- | --- | --- |
+| Google's file downloaded at the pinned revision | `sha256sum` against the value from Google's repository | Match (`fa401b55…6634`, 3,349,516,256 bytes) |
+| llama.cpp b12110 builds with every processor variant | Built on Ubuntu 24.04, not Debian | Pass |
+| Gemma answers through `fabulous-gemma --ask` | Three questions | Sensible answers. 13.7 tokens a second with all processor features; **5.1 with the SSE4.2 variant only** |
+| Memory used while answering | `/proc/<pid>/status` of the server | 3.47 GB |
+| Chat window | Run off-screen with one question; picture of the window viewed | Pass |
+| `fetch-models.sh` refuses a wrong checksum and a non-Google address | By hand | Pass (both refused, nothing placed) |
+| Unit tests (35: probe, rules, assistant) | Workspace and build server | Pass |
+
+### Build 9 (run 43581500115)
+
+| What | How | Result |
+| --- | --- | --- |
+| llama.cpp built inside Debian 13; model fetched and verified; image built | Build server | Pass. Image 5.5 GB. |
+| Gemma answers, started from the image, modern processor, 8 GB | Self-check, as an ordinary user | Pass: 21.6 tokens a second; loaded in 169 s |
+| Gemma on the no-AVX machines | Self-check | **Did not run: Claude's mistake.** The machines had 8 GB, and the rules give a no-AVX2 PC with under 12 GB no Gemma. Gemma refused with a message, as designed. |
+| Network services once the desktop is up | Self-check (`ss -tuln`), stick session | **Found:** ports 1716 (KDE Connect) and 5353 open. Earlier self-checks ran before the desktop started. |
+
+### Build 10 (run 43587501203), 5.5 GB, no build warnings
+
+| What | How | Result |
+| --- | --- | --- |
+| Gemma answers, started from the image, modern processor (AVX2), 8 GB, Secure Boot | Self-check, as an ordinary user | Pass: 16.8 tokens a second |
+| Gemma answers, started from the image, **no AVX**, 16 GB, legacy BIOS | Self-check; it reports "AVX2 no, AVX no" | **Pass: 5.4 tokens a second**; loaded in 211 s |
+| Gemma answers on the **installed system on the external drive**, no AVX, 16 GB, Secure Boot | Self-check | **Pass: 5.0 tokens a second**; loaded in 12 s |
+| Assistant sees no network | `fabulous-gemma --isolation` in all three machines | Pass: only `lo`. Not tested by attempting a connection from inside. |
+| Automated install test, option B, with Gemma in the image | Build server, 16 screenshots | **Pass**, 0 problems. Internal disk unchanged. |
+| Gemma window opens from the start menu on the installed system and answers a typed question | Screenshots `install-15`, `install-16` | Pass ("name three fruits" → "Apple, banana, orange."). The window shows the "will answer slowly" note. |
+| KDE Connect removed | Build log ("Removing kdeconnect"); self-check with program names (`ss -tulnp`) | Pass: nothing listening in either machine started from the image, desktop up. Port 5353 is gone too. On the installed system the check runs before log-in, so it shows less. |
+| Gemma icon on the taskbar | Screenshot `install-13` | Pass |
+
+### Not tested (Gemma)
+
+- **Anything on the Beelink.** Its speed with Gemma is unknown; expect less than the 5 tokens a second above.
+- Loading time from a real stick or a real SSD.
+- In the window: Stop, New chat, long conversations (the trimming of old messages is unit-tested only), closing mid-answer, opening Gemma twice.
+- The Gemma window in "Try it first" (there, only the windowless question was asked).
+- Whether the installed copy of the model still matches its checksum (its size matches).
+- The quality of Gemma's answers.
