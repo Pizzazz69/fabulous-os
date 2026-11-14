@@ -90,3 +90,13 @@ Each entry: what was decided, why, and whether it has been verified.
 | Chat window: `fabulous-gemma` (Python, Qt), on the taskbar and in the start menu as "Gemma". One window at a time. Reasoning mode off, 8,192-token working memory, Google's recommended sampling settings. | Short, quick answers matter on a slow processor. | See TESTING.md. |
 | Rules: E2B's memory figure raised from 2.9 to 3.5 GB. | Measured: 3.47 GB in use while answering. | Measured in Claude's workspace. |
 | Test machines have 8 GB of memory and 4 cores (were 4 GB, 3 cores). The installed-system test runs on a processor model without AVX ("Westmere"). | Gemma does not fit in 4 GB beside the desktop; the Beelink has no AVX. | — |
+
+## Added 14 November 2026, afternoon (pictures and recordings)
+
+| Decision | Reason | Verified? |
+| --- | --- | --- |
+| **Gemma gets Google's add-on for pictures and sound recordings** (`gemma-4-E2B-it-mmproj.gguf`, 0.99 GB, same repository, revision and licence; pinned in `models.lock`). This reverses "text only" of this morning. | David's request, on condition that ordinary chat is not slowed. Measured: it is not (4.8 against 5.0 tokens a second). | See TESTING.md. |
+| The window has "Add a picture…" and "Add a recording…" (files only; no microphone). Large pictures are shrunk to 1,600 pixels. | Simplest thing that works. | Buttons themselves not clicked in a test. |
+| The question is sent before the attachment, and sampling is less inventive (temperature 0.2) whenever a picture or recording is in the conversation. | The other order made Gemma deny it could hear; the normal setting misheard a time of day in 5 of 9 tries in one batch. | Workspace tests. |
+| Pictures are looked at in the model's standard detail, not reduced. | Reduced detail was faster (80 s against 145 s) but reading writing in pictures matters. David may prefer speed. | — |
+| Rules: E2B's memory figure is now 4.6 GB. | Measured with the add-on loaded. | Workspace. |

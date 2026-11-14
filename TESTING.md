@@ -146,3 +146,47 @@ server's and are faster than the N5105's, so **these speeds are not the Beelink'
 - The Gemma window in "Try it first" (there, only the windowless question was asked).
 - Whether the installed copy of the model still matches its checksum (its size matches).
 - The quality of Gemma's answers.
+
+## 14 November 2026, afternoon: pictures and recordings (build 11)
+
+David asked for Google's add-on file if it would not slow ordinary chat. Test files, both made by
+Claude: `shapes.png` (a red circle, a blue square, the words "FABULOUS 42", nothing else) and
+`speech.wav` (a computer voice: "The train to London leaves at half past nine on Tuesday morning.").
+No photograph and no human voice has been tried.
+
+### In Claude's workspace (2 cores, processor limited to SSE4.2 unless stated)
+
+| What | Result |
+| --- | --- |
+| Add-on file downloaded at the pinned revision; checksum against Google's repository | Match (`021059cc…eb14`, 986,833,664 bytes) |
+| Text speed without and with the add-on loaded | 4.8 and 5.0 tokens a second: no slowdown |
+| Memory in use with the add-on | 4.6 GB (3.5 GB without) |
+| Picture question | Answer began after about 145 s (about 80 s at reduced detail, a setting not used). Circle, square and words reported correctly, **plus a detail that is not in the picture** (a small symbol, or "22") in most runs. |
+| Recording question | 18 s; sentence written down correctly |
+| Order of question and recording | With the recording sent before the question, Gemma replied "I can't listen to recordings" (3 of 3). Question first: it listened. The program now always sends the question first. |
+| Reliability of hearing | At the normal sampling setting, one batch got the time of day wrong in 5 of 9 tries ("10:05", "8:45"); a later batch 0 of 8. At the less inventive setting now used with attachments: 0 of 9 wrong, across two different sentences and voices. |
+| Follow-up questions about the same picture | Answered in 1 s each: the picture is not looked at again |
+| Window: picture attached, default question (run off-screen, all processor features) | Pass; picture of the window viewed |
+| Unit tests (41) | Pass |
+
+### Build 11 (run 43598288186), 5.7 GB, no build warnings, all tests 0 problems
+
+| Test machine | Text | Picture: wait before the answer began | Recording: wait |
+| --- | --- | --- | --- |
+| From the image, AVX2, 8 GB | 14.3 tokens a second | 7 s | 2 s |
+| From the image, **no AVX**, 16 GB | 4.7 | **169 s** | 21 s |
+| **Installed on the external drive, no AVX**, 16 GB | 4.7 | **178 s** | 21 s |
+
+In all three, Gemma read "FABULOUS 42", saw the red circle and blue square, and wrote the spoken
+sentence down correctly. **In all three it also reported a "22" that is not in the picture.**
+Gemma loaded in about 4½ minutes from the image (266 s, 273 s) and in 20 s from the installed external test drive.
+The install test passed; the internal disk was unchanged; nothing was listening on the network.
+The window on the installed system shows the two new buttons (screenshot `install-16`).
+
+### Not tested (pictures and recordings)
+
+- The "Add a picture…" and "Add a recording…" buttons being clicked and a file chosen. The automated test does not operate the file chooser; the same code was run off-screen in Claude's workspace through a test option.
+- Real photographs, phone-sized photos (the shrinking of large pictures has never run on one), handwriting, documents.
+- A human voice, a long recording, music, MP3 and FLAC files (only a 4-second WAV).
+- A microphone. Gemma listens to files only; there is no "record" button.
+- Speed on the Beelink: expect more than the 3 minutes per picture seen here.
