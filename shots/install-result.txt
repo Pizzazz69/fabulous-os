@@ -1,0 +1,3 @@
+Installer opened from the desktop icon.
+Internal (Windows) disk is byte-for-byte unchanged after the install.
+problems: 0

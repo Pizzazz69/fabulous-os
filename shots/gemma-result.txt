@@ -1,0 +1,11 @@
+uefi-secure-boot: answer began after 1 s; answered in 5 s; 75 tokens at 17.0 tokens per second (reading the question: 243.2 per second)
+uefi-secure-boot: answer began after 6 s; answered in 9 s; 57 tokens at 16.5 tokens per second (reading the question: 61.4 per second)
+uefi-secure-boot: answer began after 1 s; answered in 2 s; 15 tokens at 16.8 tokens per second (reading the question: 186.0 per second)
+uefi-secure-boot: picture answer: The picture shows a red circle on the left and a blue square on the right, both on a white background. Below the shapes, there is the text "FABULOUS 42". There is also some writing at the very bottom that appears to be "22".
+uefi-secure-boot: recording answer: The train to London leaves at half-past nine on Tuesday morning.
+legacy-bios: answer began after 3 s; answered in 12 s; 51 tokens at 5.9 tokens per second (reading the question: 41.3 per second)
+legacy-bios: answer began after 136 s; answered in 148 s; 56 tokens at 4.7 tokens per second (reading the question: 2.6 per second)
+legacy-bios: answer began after 17 s; answered in 19 s; 15 tokens at 5.7 tokens per second (reading the question: 13.4 per second)
+legacy-bios: picture answer: The picture shows a red circle on the left and a blue square on the right, both on a white background. Below them, there is the text "FABULOUS 42". There is also some writing at the very bottom that appears to be "22".
+legacy-bios: recording answer: The train to London leaves at half-past nine on Tuesday morning.
+problems: 0

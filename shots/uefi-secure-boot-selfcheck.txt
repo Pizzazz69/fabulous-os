@@ -1,0 +1,93 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI QEMU DVD-ROM QM00005 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x2,0xFFFF,0x0)
+BdsDxe: starting Boot0001 "UEFI QEMU DVD-ROM QM00005 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x2,0xFFFF,0x0)
+=== FABULOUS SELFTEST BEGIN (mode: gemma) ===
+system: Fabulous OS 0.1
+started from: stick
+kernel: 6.12.117+deb13-amd64
+-rw-r--r-- 1 root root 193 Nov 14 17:28 /etc/os-release
+-rw-r--r-- 1 root root 193 Nov 14 17:28 /usr/lib/os-release
+-rw-r--r-- 1 root root 286 Nov 14 17:28 /usr/lib/os-release.debian
+timezone: Europe/London  language: en_GB.UTF-8
+--- secure boot
+SecureBoot enabled
+--- firewall
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+--- network services listening (empty = none)
+--- probe
+Processor: Intel(R) Xeon(R) 6975P-C (4 cores).
+Memory: 7.7 GB.
+This processor has the features that make the AI assistant fast (AVX2).
+The computer uses modern start-up (UEFI). Secure Boot is on.
+--- rules
+{
+  "model": "e2b",
+  "model_label": "Gemma 4 E2B",
+  "model_notes": [],
+  "app_set": "office",
+  "app_set_note": "The full creative suite would be slow on this computer.",
+  "target_disk": null,
+  "target_disk_choices": [],
+  "will_erase_windows": false,
+  "windows_present": false,
+  "refusals": [
+    "No external drive was found. Plug in the drive Fabulous OS should be installed on."
+  ],
+  "welcome_text": "This computer has 8 GB of memory and a 4-core processor. Do you want to install Fabulous OS with Gemma 4 E2B?"
+}
+--- disks
+NAME  RO RM TRAN    SIZE TYPE FSTYPE   MOUNTPOINT
+loop0  1  0         5.5G loop squashfs /run/live/rootfs/filesystem.squashfs
+sr0    1  1 sata    5.7G rom  iso9660  /run/live/medium
+--- internal disk protection
+active inactive 
+--- memory
+               total        used        free      shared  buff/cache   available
+Mem:            7909         515        7002          26         641        7393
+Swap:              0           0           0
+--- services that failed to start (empty = none)
+--- scanner
+ClamAV 1.4.3
+always-on scanner service: not-found
+signature updater: inactive
+--- gemma
+-rwxr-xr-x 1 root root 14696 Nov 14 11:05 /opt/fabulous-gemma/bin/llama-server
+
+/usr/share/fabulous/models/:
+total 4234717
+-rw-r--r-- 1 root root  986833664 Nov 14 13:12 gemma-4-E2B-it-mmproj.gguf
+-rw-r--r-- 1 root root 3349516256 Nov 14 13:12 gemma-4-E2B_q4_0-it.gguf
+network devices visible to the assistant: ['lo']
+=== FABULOUS SELFTEST BASIC DONE ===
+--- gemma answers a question (as an ordinary user)
+model file: gemma-4-E2B_q4_0-it.gguf
+pictures and recordings: gemma-4-E2B-it-mmproj.gguf
+processor: 4 cores, AVX2 yes, AVX yes; memory 7.7 GB
+network devices visible to the assistant: ['lo']
+loaded in 210 s
+question: Why is the sky blue? Answer in about 50 words.
+answer: The sky appears blue because of a phenomenon called Rayleigh scattering. Sunlight, which looks white to us, is actually made up of all the colors of the rainbow. When this sunlight hits the Earth's atmosphere, it gets scattered in all directions. The shorter, blue wavelengths of light are scattered much more easily than the longer, red wavelengths, making the sky look blue.
+answer began after 1 s; answered in 5 s; 75 tokens at 17.0 tokens per second (reading the question: 243.2 per second)
+gemma exit code: 0
+--- gemma looks at a picture (a red circle, a blue square, the words FABULOUS 42)
+model file: gemma-4-E2B_q4_0-it.gguf
+pictures and recordings: gemma-4-E2B-it-mmproj.gguf
+processor: 4 cores, AVX2 yes, AVX yes; memory 7.7 GB
+network devices visible to the assistant: ['lo']
+loaded in 12 s
+question: What does this picture show? Include any writing. [picture: shapes.png]
+picture answer: The picture shows a red circle on the left and a blue square on the right, both on a white background. Below the shapes, there is the text "FABULOUS 42". There is also some writing at the very bottom that appears to be "22".
+answer began after 6 s; answered in 9 s; 57 tokens at 16.5 tokens per second (reading the question: 61.4 per second)
+--- gemma listens to a recording (The train to London leaves at half past nine on Tuesday morning.)
+model file: gemma-4-E2B_q4_0-it.gguf
+pictures and recordings: gemma-4-E2B-it-mmproj.gguf
+processor: 4 cores, AVX2 yes, AVX yes; memory 7.7 GB
+network devices visible to the assistant: ['lo']
+loaded in 15 s
+question: Write down exactly what is said in this recording. [recording: speech.wav]
+recording answer: The train to London leaves at half-past nine on Tuesday morning.
+answer began after 1 s; answered in 2 s; 15 tokens at 16.8 tokens per second (reading the question: 186.0 per second)
+--- network services listening now, with the program behind each (empty = none)
+=== FABULOUS SELFTEST GEMMA DONE ===
