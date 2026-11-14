@@ -1,16 +1,24 @@
-# Fabulous OS: Brief, version 5
+# Fabulous OS: Brief, version 6
 
 **A Linux system with an offline AI assistant (Gemma 4), run from an external drive beside an untouched Windows PC**
 
-Prepared for David, 14 November 2026 (updated in the afternoon for build 11). This replaces brief version 4 of 13 November. Where the two disagree, this one wins.
+Prepared for David, 14 November 2026 (night), after build 12. This replaces brief version 5 of the same day. Where the two disagree, this one wins. It is written so that a new Claude session can finish the project from it.
 
 ---
 
 ## 1. How to use this brief
 
-**For David.** This is the record of where the project stands. Section 2 is the short version. Section 9 lists what you will be asked to do.
+**For David.** Section 2 is where things stand. Section 9 is your step-by-step guide for trying build 12 on the Beelink; you can follow it without Claude. Section 7 is what remains.
 
-**For Claude, in any later session.** The project lives on GitHub at `Pizzazz69/fabulous-os`. A new session does not remember this one, so start by reading this brief, then `DECISIONS.md` and `TESTING.md` in the repository. Work through section 7 in order. After each step, tell David plainly what was tested and what was not.
+**For Claude, in any later session.** You do not remember the earlier sessions. Do this, in order:
+
+1. Read this brief, then `DECISIONS.md` and `TESTING.md` in the repository `Pizzazz69/fabulous-os`.
+2. Read section 8 ("How a build works" and "Working notes for Claude"). It tells you how to see test results and what has already gone wrong, so you do not repeat it.
+3. Ask David what happened when he tried build 12 on the Beelink (section 9). **His report from the real PC outranks everything in this brief**, which rests on test machines only. Fix what he found before adding anything new.
+4. Then work through section 7 in order.
+5. After each step tell David plainly what was tested, how, and what was not (non-negotiable 9). Record it in `TESTING.md` and `DECISIONS.md`, and update this brief under a new version number at the end of the session.
+
+David is not a programmer. Write to him in plain words, explain any term you must use, and never ask him to type commands unless there is no other way. He holds truth to be important: say what you do not know.
 
 ---
 
@@ -25,7 +33,8 @@ Prepared for David, 14 November 2026 (updated in the afternoon for build 11). Th
 | Protection | Every internal disk is read-only, both when started from the stick and (from build 12) on the installed system; the installer offers only external drives. |
 | Firewall, virus scanner, Secure Boot | Checked from inside the installed system. |
 | Tested on the Beelink | Not yet. Nothing has run on any real PC. |
-| External SSD | David is buying one (a known brand, 250 GB or more). |
+| External SSD | Netac Portable SSD, 500 GB, USB 3.2; expected 14 November evening. |
+| Stick | New 128 GB SD card in an SD-to-USB reader, ready. |
 | Gemma 4 | **Included from build 10; can look at pictures and listen to recordings from build 11.** Answers in test machines, including one shaped like the Beelink (no AVX, 16 GB). Speed on the real Beelink is unmeasured. |
 | Office and creative apps | Not yet included (next step) |
 
@@ -122,21 +131,35 @@ Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows com
 
 ## 7. Next steps, in order
 
-1. ~~Automated install test.~~ Done 13 November, then redone for option B.
-2. ~~Gemma 4.~~ Done 14 November (builds 9 and 10), tested on a machine without AVX.
-3. **Office and creative apps.** Next.
-4. **The plain-question installer screens**, including the typed confirmation.
+Done: the automated install test (13 November); Gemma 4 with pictures and recordings (14 November, builds 9 to 11); internal disks read-only on the installed system (build 12).
 
-Small items to fold in along the way:
+**Step A. David tries build 12 on the Beelink** (section 9). This is the first run on real hardware. Claude: ask for his report and fix what it shows first. Things to ask him: did the stick start; screen, Wi-Fi, sound; did the installer offer only the SSD; did the SSD start from the F7 menu; how long Gemma takes to load and to answer on the real N5105; does Windows still start normally with the SSD unplugged.
 
-- Remove the "debian" logo from the log-in screen; reword the installer's heading; rename the stick's start-up menu.
-- Test the Virus Scanner from the menu, the update pop-up, Tor Browser and the app store in a test machine.
+**Step B. Typed confirmation before erasing** (non-negotiable 3, not yet met). The installer (Calamares) asks only yes/no today. Add a screen where the person must type a word (for example ERASE) before the external drive is erased. Extend `tests/install-test.sh` to type it, and add a check that a wrong word does not start the install.
+
+**Step C. Office and creative apps.** LibreOffice (Writer, Calc, Impress) from Debian 13. David also listed creative apps on 12 November; see `DECISIONS.md`, and the ArtCraft "Craft" apps have still not been looked at. Non-negotiable 6: every app shipped must be opened in a test machine, with a screenshot. Add each to the install test the way Brave and Gemma were added.
+
+**Step D. Gemma reads documents** (David's wish, 14 November; not started, not tested). David hoped Gemma could read and edit .docx files, spreadsheets and slides and work unaided on long tasks. Claude told him that unaided long work is not realistic for this small model on this PC, and that a realistic version is:
+
+- an "Add a document…" button in the Gemma window that hands Gemma the text of a .docx, .odt, spreadsheet or slides file (LibreOffice can convert these to text without opening a window);
+- for a long document, a small program (not Gemma) that cuts it into sections, gives Gemma one section at a time, and collects the results. This suits summarising, proofreading, plainer wording and translating; it does not suit tasks that need the whole document in mind;
+- results saved as a **new** file; the original is never changed.
+
+Try it in the workspace first on a real multi-page .docx and show David the results and timings before building it in. Expect roughly an hour per 10,000 words rewritten on the test machines, and more on the Beelink.
+
+**Step E. The plain-question installer screens**, using the probe and rules (the installer does not use them yet).
+
+**Small items**, to fold in along the way:
+
+- Remove the "debian" logo from the log-in screen; reword the installer's heading ("Calamares installer"); rename the stick's start-up menu ("Debian GNU/Linux").
+- Test in a test machine: the Virus Scanner from the menu, the update pop-up, Tor Browser, the app store.
+- Test in a test machine: Gemma's Stop and New chat buttons; "Add a picture…" and "Add a recording…" with a real file chosen; opening the Windows disk in the file manager on the installed system (it should be readable and not writable).
 - Check Brave's settings.
 - Put the mandala and the plain background in a folder the user can open.
+- Delete the scratch branches `vm-control` and `vm-screen`.
+- Optional, if David wants faster picture answers: reduced picture detail (`--image-max-tokens 140`) cut the wait from about 145 to about 80 seconds in the workspace, at some cost to reading small writing.
 
-Each build now takes about 65 minutes in all (Gemma made the image and the tests bigger).
-
-**When David has the SSD:** he may try "Try it first" on the Beelink at any time; it cannot change the internal disk. Installing onto the SSD is reasonably safe from build 8 on (build 12 is the current one), with the SSD being the only thing that can be erased, but Claude would prefer the typed confirmation (step 4) first.
+Each build takes about 65 minutes. Finishing all of this is more than one day's work; steps A, B and C matter most.
 
 ---
 
@@ -151,16 +174,50 @@ Each build now takes about 65 minutes in all (Gemma made the image and the tests
 
 Claude can see the screenshots and logs (on the `test-results` branch), but cannot download the image itself. Claude's workspace can reach GitHub and Google's Gemma repository, so llama.cpp and Gemma can be tried there before a build. Claude can also operate a test machine step by step ("Remote-controlled test machine").
 
+### Working notes for Claude
+
+- **Starting a build.** Any push to `main` starts a full build and test (about 65 minutes). Put `[skip ci]` in the commit message for changes to documents only. Earlier sessions pushed straight to `main`; David expects that.
+- **Watching a build.** `gh run list -R Pizzazz69/fabulous-os`, then `gh run view <id> -R Pizzazz69/fabulous-os --json status,conclusion,jobs`. The full log, once the run has finished: `gh run view <id> --log`. Look in it for `FABULOUS-WARNING` (the build prints "=== warnings ===" and then "none" when there are none).
+- **Seeing the results.** Artifact downloads are blocked from Claude's workspace. Instead, a second workflow publishes the screenshots and self-check texts to the `test-results` branch about a minute after each run: `git fetch --depth 1 origin test-results`, then check the files out into a separate folder. Read `shots/gemma-result.txt` and `shots/install-result.txt` (both must end "problems: 0") and the three `*-selfcheck.txt` files, and look at the `install-*.png` screenshots yourself.
+- **Trying Gemma without a build.** The workspace can reach GitHub and huggingface.co. Build llama.cpp at the commit in `build/llama.lock` with the options in `build/build-llama.sh`, fetch the model files with `build/fetch-models.sh`, then run `packages/fabulous-gemma/fabulous_gemma.py` with `FABULOUS_GEMMA_PREFIX`, `FABULOUS_GEMMA_MODELS` and `FABULOUS_RULES_DIR` set. `--ask "question" [--picture FILE] [--recording FILE]` answers on the terminal. With `QT_QPA_PLATFORM=offscreen`, `--demo "question" --screenshot out.png` runs the real window and saves a picture of it. To imitate the Beelink's processor, keep only `libggml-cpu-sse42.so` of the `libggml-cpu-*.so` files.
+- **Unit tests.** `python3 -m pytest -q packages rules` (41 tests).
+- **The rules decide who gets Gemma** (`rules/rules.yaml`): a processor without AVX2 needs 12 GB or more. A no-AVX test machine with 8 GB is correctly refused, so give such machines 16 GB (build 9 was wasted on this).
+- **Gemma and attachments.** The question must be sent before the picture or recording, or Gemma denies it can hear. Sampling is made less inventive when something is attached. Both are in `fabulous_gemma.py`; do not undo them without re-testing.
+- **Disk safety.** `fabulous-protect-internal` makes internal disks read-only in the stick session and on the installed system. Never weaken it without David's say-so. The install test must keep proving the internal disk is byte-for-byte unchanged.
+- **The image expires.** GitHub keeps each build's image for 14 days (build 12: until about 28 November 2026). If David needs it after that, start a new build.
+- **David's time with Claude is limited.** Check on builds sparingly and keep messages short.
+
 ---
 
-## 9. What David will be asked to do
+## 9. David's guide: trying build 12 on the Beelink
 
-1. **Buy an external SSD:** a known brand (Samsung, Crucial, SanDisk, Kingston) from a known UK retailer, 250 GB or more. Not the "128 TB for £30" kind; those are fakes.
-2. **When an image is ready to try:** download it from GitHub (5.7 GB for build 12), write it to the stick with balenaEtcher, and start the Beelink from the stick by tapping the boot key at power-on (usually F7 on a Beelink). Claude will supply a step-by-step guide.
-3. **"Try it first":** optional now that Windows is not at risk. The stick always starts a working desktop with the installer as an icon on it; a quick look at the screen, Wi-Fi and sound before the SSD is erased is all it is for. No need to try Gemma there: it loads slowly from the stick.
-4. **Install:** plug in the SSD, run the installer, choose the SSD. Everything on the SSD is erased. The internal disk is read-only throughout.
-5. **Afterwards:** tap F7 at power-on and choose the SSD to start Fabulous OS. Unplug it, or just don't press F7, and the PC starts Windows as before.
-6. **The stick:** the 128 GB SD card in a **USB card reader**. Writing the image erases the card.
+You have: the Beelink with Windows; the 128 GB SD card in its USB reader (the "stick"); the Netac 500 GB external SSD. Nothing below can change the Beelink's internal disk: Fabulous OS makes it read-only. None of this has been tried on a real PC yet, so if anything differs from what is written here, stop and tell Claude.
+
+**1. Download the image (on Windows).**
+Sign in to github.com, open `github.com/Pizzazz69/fabulous-os`, click **Actions**, then the run named "Installed system: internal disks read-only at every start" with a green tick. At the bottom of that page, under **Artifacts**, click **fabulous-os-image**. A zip file of about 5.7 GB downloads. Open it and copy out the file ending `.iso`. (Available until about 28 November; after that, ask Claude for a new build.)
+
+**2. Write it to the stick.**
+Install balenaEtcher (etcher.balena.io). Plug in the SD-card stick. In Etcher: "Flash from file" and pick the `.iso`; "Select target" and pick the SD card (check the size, about 128 GB, so that you do not pick the SSD); then "Flash". This erases the SD card. If Windows afterwards says the card "needs to be formatted", say **No**.
+
+**3. Start the Beelink from the stick.**
+If Windows uses BitLocker, have your recovery key to hand first (Claude does not expect it to be asked for, but has not tested it). Shut Windows down. Plug in the stick. Switch on and tap **F7** repeatedly until a menu of drives appears; choose the stick. A menu headed "Debian GNU/Linux" appears: press Enter. The Fabulous OS desktop should appear within a couple of minutes. Do not switch Secure Boot off; if the PC refuses to start the stick, stop and tell Claude.
+
+**4. Look around (optional, two minutes).**
+Does the screen look right? Does Wi-Fi connect? Is there sound? There is no need to try Gemma here: from the stick she takes about five minutes to load.
+
+**5. Install onto the SSD.**
+Plug in the Netac SSD. Double-click **Install Fabulous OS** on the desktop. When asked where to install, the SSD should be the only drive offered (about 500 GB). **If the internal disk (477 GB) is ever offered, stop and tell Claude.** The installer asks yes or no before erasing the SSD; there is no typed confirmation yet. Choose a user name and password and remember them. In the test machines the install took under 12 minutes.
+
+**6. Start Fabulous OS from the SSD.**
+When it finishes, shut down, remove the stick, leave the SSD plugged in, switch on and tap **F7**; choose the SSD. Log in.
+
+**7. Try Gemma.**
+Click the speech-bubble icon on the taskbar. Wait for "Ready." and ask a short question. Please note roughly how long she takes to load and to answer; these will be the first real measurements.
+
+**8. Back to Windows.**
+Shut down, unplug the SSD, switch on. Windows should start exactly as before. If Windows ever offers to format the SSD, say **No**.
+
+**What to tell Claude afterwards:** anything that did not match the above; whether Wi-Fi and sound worked; Gemma's loading and answering times; whether Windows started normally.
 
 Never paste a password into the chat. Claude's access to GitHub works through the link David approved, not a password.
 
@@ -228,6 +285,8 @@ Non-negotiable 4, as David clarified on 13 November: a daily check for updates w
 **Evening.** David asked where files are kept; Claude found that the installed system, unlike the stick session, did not protect the Windows disk, and David asked for it to be protected (build 12). Not tested there: opening the Windows disk in the file manager; a real USB stick (the test stick is a virtual CD drive).
 
 **Found by testing.** KDE Connect listened on the network and announced the PC once the desktop was up; earlier self-checks ran before the desktop and missed it. After its removal nothing was listening in either machine started from the image.
+
+**Told to David about Gemma's limits (14 November).** She is a chat window: she cannot open files, operate LibreOffice or act on the computer, and long unaided work is not realistic for this model on this PC. David asked whether dividing a long document into sections would work; Claude said yes for section-by-section tasks, untested (section 7, step D).
 
 **Mistakes by Claude this session.** The 8 GB test machines (cost one build, about an hour). Gemma's "cannot run" message at first used the installer's wording ("will install without it"). The first build's saved copies of llama.cpp and the model were thrown away because a later test failed, so build 10 fetched and built them again.
 
