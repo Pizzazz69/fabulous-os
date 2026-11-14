@@ -52,7 +52,7 @@ jobs:
 
       - name: Gemma's program (llama.cpp at a fixed commit), kept between builds
         id: llama-cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: .cache/llama
           key: llama-${{ hashFiles('build/llama.lock', 'build/build-llama.sh') }}
@@ -64,8 +64,16 @@ jobs:
           docker run --rm -v "$PWD":/work -w /work debian:trixie \
             bash build/build-llama.sh build/llama.lock /work/.cache/llama
 
+      - name: Keep Gemma's program for later builds
+        if: steps.llama-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/llama
+          key: llama-${{ hashFiles('build/llama.lock', 'build/build-llama.sh') }}
+
       - name: Gemma model file, kept between builds
-        uses: actions/cache@v4
+        id: model-cache
+        uses: actions/cache/restore@v4
         with:
           path: .cache/models
           key: models-${{ hashFiles('models.lock') }}
@@ -82,6 +90,13 @@ jobs:
           chmod 0755 $root/usr/local/bin/fabulous-gemma
           ls -l $root/opt/fabulous-gemma/bin $root/usr/share/fabulous/models $root/usr/share/doc/fabulous-gemma
           df -h /
+
+      - name: Keep the Gemma model file for later builds
+        if: steps.model-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/models
+          key: models-${{ hashFiles('models.lock') }}
 
       - name: Build the image inside Debian 13
         run: |
@@ -111,11 +126,11 @@ jobs:
           else echo "PROBLEM: no KVM on this build server; Gemma cannot be tested" | tee -a shots-problem.txt; accel=""; wait=900; fi
           echo "acceleration: $accel"
           mkdir -p shots
-          # Each test machine: 8 GB of memory and 4 processor cores. It starts from the
+          # Each test machine has 4 processor cores. It starts from the
           # image, shows the desktop, and its self-check asks Gemma one question.
-          shoot() {  # name, processor, extra qemu args...
-            name=$1; cpu=$2; shift 2
-            sudo qemu-system-x86_64 $accel -cpu $cpu -m 8192 -smp 4 -display none -vga std \
+          shoot() {  # name, processor, memory in MB, extra qemu args...
+            name=$1; cpu=$2; mem=$3; shift 3
+            sudo qemu-system-x86_64 $accel -cpu $cpu -m $mem -smp 4 -display none -vga std \
               -cdrom "$iso" -monitor unix:/tmp/mon-$name,server,nowait -daemonize \
               -serial file:/tmp/$name-serial.log \
               -smbios type=11,value=io.systemd.credential:fabulous.selftest=gemma "$@"
@@ -136,14 +151,15 @@ jobs:
           }
           sudo apt-get install -y --no-install-recommends socat
           cp /usr/share/OVMF/OVMF_VARS_4M.ms.fd /tmp/vars.fd
-          # A modern processor (whatever the build server has, with AVX2).
-          shoot uefi-secure-boot host -machine q35,smm=on \
+          # A modern processor (whatever the build server has, with AVX2), 8 GB of memory.
+          shoot uefi-secure-boot host 8192 -machine q35,smm=on \
             -global driver=cfi.pflash01,property=secure,value=on \
             -drive if=pflash,format=raw,unit=0,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.secboot.fd \
             -drive if=pflash,format=raw,unit=1,file=/tmp/vars.fd
-          # A processor without AVX or AVX2, like the Beelink's N5105 ("Westmere":
-          # SSE4.2 is its highest instruction set).
-          shoot legacy-bios Westmere
+          # Shaped like the Beelink: a processor without AVX or AVX2 ("Westmere": SSE4.2
+          # is its highest instruction set, as with the N5105) and 16 GB of memory.
+          # (With 8 GB the rules give such a processor no Gemma; build 9 showed that.)
+          shoot legacy-bios Westmere 16384
           ls -l shots
 
       - name: Install onto a blank test disk, restart from it, and check

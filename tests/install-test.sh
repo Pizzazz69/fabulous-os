@@ -57,9 +57,10 @@ if vm_internal_unchanged; then
 else
     problem "THE INTERNAL DISK WAS CHANGED BY THE INSTALL."
 fi
-# The installed system runs on a processor without AVX or AVX2 ("Westmere"), as the
-# Beelink's N5105 is, so that Gemma is tried the way it will have to run there.
-vm_start external full Westmere
+# The installed system runs on a machine shaped like the Beelink: a processor without
+# AVX or AVX2 ("Westmere") and 16 GB of memory, so that Gemma is tried the way it
+# will have to run there.
+vm_start external full Westmere 16384
 sleep 100; shot 12-login-screen
 vm key shift -- sleep 3 -- type "$PASSWORD" -- key ret
 sleep 60; shot 13-installed-desktop

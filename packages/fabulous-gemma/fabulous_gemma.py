@@ -104,6 +104,20 @@ def advice(memory_gb=None, flags=None):
             sys.path.pop(0)
 
 
+def unavailable_text(memory_gb=None, flags=None):
+    """Why Gemma will not run here, in the assistant's own words (the rules' wording
+    is written for the installer)."""
+    if memory_gb is None:
+        memory_gb = read_memory_gb()
+    if flags is None:
+        flags = read_cpu()[1]
+    text = f"Gemma cannot run on this computer. It has {memory_gb:.0f} GB of memory"
+    if "avx2" in flags:
+        return text + ", and Gemma needs at least 6 GB."
+    return text + (" and a processor without the AVX2 feature that speeds up AI. "
+                   "On such a processor Gemma needs at least 12 GB of memory.")
+
+
 def find_model(model_dir=None):
     explicit = os.environ.get("FABULOUS_GEMMA_MODEL")
     if explicit:
@@ -306,7 +320,7 @@ class Engine:
 def ask(question, max_tokens=None, out=sys.stdout):
     model, notes = advice()
     if model == "none":
-        raise GemmaError(notes[0] if notes else "Gemma is not available on this computer.")
+        raise GemmaError(unavailable_text())
     cores, flags = read_cpu()
     print(f"model file: {os.path.basename(find_model())}", file=out)
     print(f"processor: {cores} cores, AVX2 {'yes' if 'avx2' in flags else 'no'}, "
@@ -359,7 +373,7 @@ def run_window(demo=None, screenshot=None):
 
     model, notes = advice()
     if model == "none":
-        QMessageBox.information(None, "Gemma", (notes[0] if notes else "Gemma is not available on this computer."))
+        QMessageBox.information(None, "Gemma", unavailable_text())
         return 0
 
     class Loader(QThread):

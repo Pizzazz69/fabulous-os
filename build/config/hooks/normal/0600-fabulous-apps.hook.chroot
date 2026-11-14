@@ -39,4 +39,15 @@ if dpkg -s tor >/dev/null 2>&1; then
     systemctl mask tor.service tor@default.service || echo "FABULOUS-WARNING: background Tor service not switched off"
 fi
 
+# KDE Connect (phone pairing) announces this computer on the local network and
+# listens on port 1716 as soon as the desktop starts, unasked (seen in build 9's
+# self-check). The firewall already refuses what comes in; removing it stops the
+# announcing as well. It can be put back from the App Store.
+for p in kdeconnect; do
+    dpkg -s "$p" >/dev/null 2>&1 || continue
+    n=$(apt-get -s purge "$p" | grep -c -E '^(Purg|Remv) ' || true)
+    if [ "$n" = 1 ]; then apt-get -y purge "$p"
+    else echo "FABULOUS-WARNING: kept $p (removing it would remove $n packages); it announces this PC on the local network"; fi
+done
+
 apt-get clean

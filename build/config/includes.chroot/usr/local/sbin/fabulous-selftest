@@ -42,8 +42,8 @@ if [ "$mode" = gemma ] || [ "$mode" = full ]; then
     runuser -u nobody -- timeout 1200 /usr/local/bin/fabulous-gemma \
         --ask "Why is the sky blue? Answer in about 50 words." --max-tokens 150 2>&1
     echo "gemma exit code: $?"
-    echo "--- network services listening after Gemma ran (empty = none)"
-    ss -H -tuln
+    echo "--- network services listening now, with the program behind each (empty = none)"
+    ss -H -tulnp
     echo "=== FABULOUS SELFTEST GEMMA DONE ==="
 fi
 if [ "$mode" = full ]; then

@@ -99,3 +99,16 @@ def test_picture_addon_is_not_mistaken_for_the_model(tmp_path, monkeypatch):
 def test_the_assistant_is_started_without_a_network():
     # The command that starts the model must begin by removing the network.
     assert fg.ISOLATE[0] == "unshare" and "--net" in fg.ISOLATE
+
+
+def test_eight_gb_without_avx2_gets_no_model_and_says_why(monkeypatch):
+    # The AWOW case of 13 November, and what build 9's 8 GB no-AVX test machine showed.
+    monkeypatch.setattr(fg, "RULES_DIR", RULES)
+    assert fg.advice(memory_gb=7.7, flags={"sse4_2"})[0] == "none"
+    text = fg.unavailable_text(7.7, {"sse4_2"})
+    assert "8 GB" in text and "AVX2" in text and "12 GB" in text
+    assert "install" not in text
+
+
+def test_small_memory_with_avx2_says_six_gb():
+    assert "6 GB" in fg.unavailable_text(3.8, {"avx2"})

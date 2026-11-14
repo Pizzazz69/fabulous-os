@@ -76,3 +76,17 @@ Each entry: what was decided, why, and whether it has been verified.
 | Virus signatures are fetched when the Virus Scanner is opened; no background downloading. | David's choice. | See TESTING.md. |
 | Stick session: password safe (KDE Wallet) off, update pop-ups off. | The stick has no log-in password to lock a safe with; updating a stick session is pointless. | See TESTING.md. |
 | Installer pictures and log-in screen use the mandala; the installer picture says "based on Debian". The app store is labelled "App Store". | David's request; Debian's trademark rules. | See TESTING.md. |
+
+## Added 14 November 2026 (Gemma 4)
+
+| Decision | Reason | Verified? |
+| --- | --- | --- |
+| Model: **Gemma 4 E2B**, Google's own file `gemma-4-E2B_q4_0-it.gguf` (3.35 GB) from `google/gemma-4-E2B-it-qat-q4_0-gguf`, pinned to revision `675cff4` and to its SHA-256 in `models.lock`. The build refuses any file that is not from Google's repository or does not match. | Non-negotiable 5. Licence Apache 2.0; the repository is not gated (no sign-up). | Checksum compared with the value Google's repository publishes, 14 Nov 2026. Refusal of a wrong checksum and of a non-Google address tried by hand. |
+| The model travels **inside the image** (which grows from 2.5 GB to about 6 GB). Nothing is downloaded on the PC. | "Offline assistant"; non-negotiable 4. | See TESTING.md. |
+| **Text only.** Google's 1 GB add-on for pictures and audio (`mmproj`) is left out. | Smaller image; David can ask for it. | — |
+| Program that runs the model: **llama.cpp**, built from source at one fixed commit (`build/llama.lock`: b12110, the build its release v0.9.0 points to), inside Debian 13 on the build server. MIT licence, shipped. This replaces the "LiteRT-LM" idea of 12 November. | Debian 13 has nothing that can run Gemma 4, and Google's page for this file names llama.cpp. Built without its web page, without HTTPS and without any downloading ability. | See TESTING.md. |
+| One program for every processor: the calculating part is built in all variants and chosen at start. The Beelink's **N5105 has neither AVX2 nor AVX** (Intel lists SSE4.2 as its highest), so it uses the plain SSE4.2 variant. | Brief v4 said "lacks AVX2"; checked against Intel's page on 14 Nov 2026. | Speed on the Beelink itself unmeasured. In Claude's workspace (2 cores of a 2.3 GHz Xeon) the SSE4.2 variant gave 5 tokens a second against 14 with everything on. |
+| **The assistant has no network at all.** It is started inside its own empty network namespace (`unshare --net`) and spoken to through a private socket file, not a network port. If that cannot be set up, Gemma refuses to start. | Non-negotiable 4, enforced by the system rather than by a setting. | See TESTING.md. |
+| Chat window: `fabulous-gemma` (Python, Qt), on the taskbar and in the start menu as "Gemma". One window at a time. Reasoning mode off, 8,192-token working memory, Google's recommended sampling settings. | Short, quick answers matter on a slow processor. | See TESTING.md. |
+| Rules: E2B's memory figure raised from 2.9 to 3.5 GB. | Measured: 3.47 GB in use while answering. | Measured in Claude's workspace. |
+| Test machines have 8 GB of memory and 4 cores (were 4 GB, 3 cores). The installed-system test runs on a processor model without AVX ("Westmere"). | Gemma does not fit in 4 GB beside the desktop; the Beelink has no AVX. | — |
