@@ -68,7 +68,7 @@ vm click 900 250 -- click 632 768; sleep 30; shot 14-brave-on-installed-system
 log="$VMDIR/serial-external.log"
 # Gemma: first wait for the self-check's question (asked without a window), then
 # open the window from the start menu the way a person would and ask one there.
-for i in $(seq 1 120); do sudo grep -aq "SELFTEST GEMMA DONE" "$log" && break; sleep 10; vm move $((600+i%5)) 300; done
+for i in $(seq 1 240); do sudo grep -aq "SELFTEST GEMMA DONE" "$log" && break; sleep 10; vm move $((600+i%5)) 300; done
 vm key meta_l -- sleep 4 -- type gemma -- sleep 4 -- key ret
 sleep 60; shot 15-gemma-window
 vm type "name three fruits" -- key ret
@@ -90,6 +90,8 @@ need "FOUND" "The virus scanner did not detect the standard test file."
 need "timezone: Europe/London" "The installed system is not set to London."
 need "tokens per second" "Gemma did not answer on the installed system."
 need "gemma exit code: 0" "Gemma's program reported an error on the installed system."
+grep -a "^picture answer:" "$OUT/install-selfcheck.txt" | grep -aqi "fabulous" || problem "Gemma did not read the words in the test picture on the installed system."
+grep -a "^recording answer:" "$OUT/install-selfcheck.txt" | grep -aqi "london" || problem "Gemma did not hear the test recording on the installed system."
 need "AVX2 no, AVX no" "The installed system's test processor had AVX, so the no-AVX test proves nothing."
 grep -aqF "network devices visible to the assistant: ['lo']" "$OUT/install-selfcheck.txt" || problem "The assistant was not cut off from the network."
 need "^sdb .* usb .*disk" "The installed system does not see itself on a USB drive."

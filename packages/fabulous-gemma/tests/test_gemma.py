@@ -112,3 +112,51 @@ def test_eight_gb_without_avx2_gets_no_model_and_says_why(monkeypatch):
 
 def test_small_memory_with_avx2_says_six_gb():
     assert "6 GB" in fg.unavailable_text(3.8, {"avx2"})
+
+
+def test_addon_for_pictures_and_recordings_is_found(tmp_path, monkeypatch):
+    monkeypatch.delenv("FABULOUS_GEMMA_MMPROJ", raising=False)
+    assert fg.find_senses(str(tmp_path)) is None
+    (tmp_path / "gemma-4-E2B-it-mmproj.gguf").write_bytes(b"")
+    assert fg.find_senses(str(tmp_path)).endswith("mmproj.gguf")
+
+
+def test_plain_message_is_sent_as_plain_text():
+    assert fg.to_wire({"role": "user", "content": "hello", "attachments": []}) == {
+        "role": "user", "content": "hello"}
+
+
+def test_question_is_sent_before_the_picture_and_recording(tmp_path):
+    pic = tmp_path / "cat.png"
+    pic.write_bytes(b"PNGDATA")
+    rec = tmp_path / "note.wav"
+    rec.write_bytes(b"WAVDATA")
+    m = {"role": "user", "content": "what is this?",
+         "attachments": [fg.attachment("picture", str(pic)), fg.attachment("recording", str(rec))]}
+    parts = fg.to_wire(m)["content"]
+    assert [p["type"] for p in parts] == ["text", "image_url", "input_audio"]
+    assert parts[0]["text"] == "what is this?"
+    assert parts[1]["image_url"]["url"] == "data:image/png;base64,UE5HREFUQQ=="
+    assert parts[2]["input_audio"]["data"] == "V0FWREFUQQ=="
+
+
+def test_missing_attachment_is_reported_in_plain_words(tmp_path):
+    with pytest.raises(fg.GemmaError, match="Could not open gone.png"):
+        fg.attachment("picture", str(tmp_path / "gone.png"))
+
+
+def test_overlong_recording_is_refused(tmp_path, monkeypatch):
+    monkeypatch.setattr(fg, "MAX_RECORDING_BYTES", 10)
+    rec = tmp_path / "long.wav"
+    rec.write_bytes(b"x" * 11)
+    with pytest.raises(fg.GemmaError, match="too long"):
+        fg.attachment("recording", str(rec))
+
+
+def test_attachments_count_towards_the_working_memory():
+    a = {"kind": "picture", "name": "p.png", "b64": ""}
+    msgs = [{"role": "user", "content": "one", "attachments": [a]},
+            {"role": "assistant", "content": "two"},
+            {"role": "user", "content": "three"}]
+    assert len(fg.trim_history(msgs, budget=fg.ATTACHMENT_CHAR_COST + 20)) == 3
+    assert fg.trim_history(msgs, budget=100) == msgs[2:]

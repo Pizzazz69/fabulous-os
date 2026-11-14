@@ -14,6 +14,7 @@ else
 fi
 ls -l /usr/share/fabulous/models/ 2>&1 || true
 ls /usr/share/fabulous/models/*.gguf >/dev/null 2>&1 || echo "FABULOUS-WARNING: no Gemma model in the image"
+ls /usr/share/fabulous/models/*mmproj*.gguf >/dev/null 2>&1 || echo "FABULOUS-WARNING: Gemma's add-on for pictures and recordings is not in the image"
 python3 -c "import PyQt6.QtWidgets" || echo "FABULOUS-WARNING: Gemma's window cannot open (PyQt6 missing)"
 command -v unshare >/dev/null || echo "FABULOUS-WARNING: Gemma cannot be cut off from the network (unshare missing), so it will refuse to start"
 # Licences: Gemma is Apache 2.0; llama.cpp's own licence files are placed by the build.

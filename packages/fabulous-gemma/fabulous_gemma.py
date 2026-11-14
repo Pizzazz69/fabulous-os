@@ -8,9 +8,11 @@ a private socket file. If that isolation cannot be set up, Gemma does not start.
 
   fabulous-gemma                 open the chat window
   fabulous-gemma --ask "..."     answer one question on the terminal (used by tests)
+       [--picture FILE] [--recording FILE]   ... about a picture or a sound recording
   fabulous-gemma --isolation     show what network the assistant can see (tests)
 """
 import argparse
+import base64
 import glob
 import http.client
 import json
@@ -31,6 +33,10 @@ CONTEXT_TOKENS = 8192
 HISTORY_CHAR_BUDGET = 15000
 # Google's recommended sampling settings for Gemma.
 SAMPLING = {"temperature": 1.0, "top_k": 64, "top_p": 0.95}
+# With a picture or recording in the conversation the task is to report what is
+# there, so Gemma is made less inventive. (At the normal setting it misheard a
+# time of day in 5 of 9 tries in one test; at this one, 0 of 9.)
+SAMPLING_SENSES = {"temperature": 0.2, "top_k": 64, "top_p": 0.95}
 SYSTEM_PROMPT = (
     "You are Gemma, an AI assistant that runs entirely on the user's own computer as "
     "part of Fabulous OS. You have no internet access and cannot look anything up, so "
@@ -38,6 +44,15 @@ SYSTEM_PROMPT = (
     "something, say that you are not sure. Keep answers short and clear unless asked "
     "for detail."
 )
+SYSTEM_PROMPT_SENSES = (
+    " You can look at pictures and listen to sound recordings that the user attaches. "
+    "Describe only what is really there, and say so if something is unclear."
+)
+# Roughly what an attachment costs of the model's working memory, in characters.
+ATTACHMENT_CHAR_COST = 1200
+PICTURE_TYPES = ("png", "jpg", "jpeg", "bmp", "gif", "webp")
+RECORDING_TYPES = ("wav", "mp3", "flac")
+MAX_RECORDING_BYTES = 30 * 1024 * 1024
 ISOLATE = ["unshare", "--map-current-user", "--net", "--"]
 
 
@@ -129,6 +144,48 @@ def find_model(model_dir=None):
     return files[0]
 
 
+def find_senses(model_dir=None):
+    """Google's add-on file that lets Gemma look at pictures and listen to
+    recordings, or None if this image was built without it."""
+    explicit = os.environ.get("FABULOUS_GEMMA_MMPROJ")
+    if explicit:
+        return explicit if os.path.exists(explicit) else None
+    files = sorted(glob.glob(os.path.join(model_dir or MODEL_DIR, "*mmproj*.gguf")))
+    return files[0] if files else None
+
+
+def attachment(kind, path, data=None):
+    """A picture or recording to send with a question. `data` is the file's bytes
+    (the window passes pictures already converted to PNG); otherwise the file is read."""
+    if kind not in ("picture", "recording"):
+        raise GemmaError("Only pictures and sound recordings can be attached.")
+    if data is None:
+        try:
+            with open(path, "rb") as f:
+                data = f.read()
+        except OSError as e:
+            raise GemmaError(f"Could not open {os.path.basename(path)}: {e.strerror}")
+    if kind == "recording" and len(data) > MAX_RECORDING_BYTES:
+        raise GemmaError("That recording is too long for Gemma. Try a shorter one.")
+    return {"kind": kind, "name": os.path.basename(path), "b64": base64.b64encode(data).decode("ascii")}
+
+
+def to_wire(message):
+    """One message of the conversation in the form the server expects."""
+    attached = message.get("attachments") or []
+    if not attached:
+        return {"role": message["role"], "content": message["content"]}
+    # The question goes first: asked the other way round, Gemma sometimes replied
+    # that it could not listen to recordings (seen in testing, 14 November 2026).
+    parts = [{"type": "text", "text": message["content"]}]
+    for a in attached:
+        if a["kind"] == "picture":
+            parts.append({"type": "image_url", "image_url": {"url": "data:image/png;base64," + a["b64"]}})
+        else:
+            parts.append({"type": "input_audio", "input_audio": {"data": a["b64"], "format": "wav"}})
+    return {"role": message["role"], "content": parts}
+
+
 def find_server():
     path = os.environ.get("FABULOUS_GEMMA_SERVER") or os.path.join(PREFIX, "bin", "llama-server")
     if not os.access(path, os.X_OK):
@@ -165,7 +222,7 @@ def trim_history(messages, budget=HISTORY_CHAR_BUDGET):
     the last message. Drops whole messages, oldest first."""
     kept, used = [], 0
     for m in reversed(messages):
-        n = len(m["content"])
+        n = len(m["content"]) + ATTACHMENT_CHAR_COST * len(m.get("attachments") or [])
         if kept and used + n > budget:
             break
         kept.append(m)
@@ -210,9 +267,12 @@ class Engine:
         self.log_path = log_path
         self._conn = None
         self.last_timings = None
+        self.senses = False  # can it look at pictures and listen to recordings?
 
     def start(self):
         server, model = find_server(), find_model()
+        mmproj = find_senses()
+        self.senses = mmproj is not None
         if shutil.which("unshare") is None:
             raise GemmaError("Network isolation is not available, so Gemma was not started.")
         isolation_report()  # raises if the isolation cannot be set up
@@ -226,6 +286,8 @@ class Engine:
             "--parallel", "1", "--reasoning", "off", "--no-ui", "--offline",
             "--cache-ram", "256", "--no-slots",
         ]
+        if mmproj:
+            cmd += ["--mmproj", mmproj]
         env = dict(os.environ, LD_LIBRARY_PATH=os.path.join(PREFIX, "bin"))
         self.log_path = self.log_path or os.path.join(self.dir, "server.log")
         self._log = open(self.log_path, "wb")
@@ -265,8 +327,11 @@ class Engine:
 
     def chat(self, messages, max_tokens=None):
         """Yield the answer piece by piece. `messages` is the conversation so far."""
-        body = dict(SAMPLING, stream=True, messages=[{"role": "system", "content": SYSTEM_PROMPT}]
-                    + trim_history(messages))
+        system = SYSTEM_PROMPT + (SYSTEM_PROMPT_SENSES if self.senses else "")
+        kept = trim_history(messages)
+        sampling = SAMPLING_SENSES if any(m.get("attachments") for m in kept) else SAMPLING
+        body = dict(sampling, stream=True, messages=[{"role": "system", "content": system}]
+                    + [to_wire(m) for m in kept])
         if max_tokens:
             body["max_tokens"] = max_tokens
         self.last_timings = None
@@ -317,12 +382,21 @@ class Engine:
 
 # ---------------------------------------------------------------- terminal
 
-def ask(question, max_tokens=None, out=sys.stdout):
+def ask(question, max_tokens=None, out=sys.stdout, picture=None, recording=None):
     model, notes = advice()
     if model == "none":
         raise GemmaError(unavailable_text())
     cores, flags = read_cpu()
     print(f"model file: {os.path.basename(find_model())}", file=out)
+    senses = find_senses()
+    print(f"pictures and recordings: {os.path.basename(senses) if senses else 'not in this image'}", file=out)
+    attached = []
+    if picture:
+        attached.append(attachment("picture", picture))
+    if recording:
+        attached.append(attachment("recording", recording))
+    if attached and not senses:
+        raise GemmaError("This copy of Gemma cannot look at pictures or listen to recordings.")
     print(f"processor: {cores} cores, AVX2 {'yes' if 'avx2' in flags else 'no'}, "
           f"AVX {'yes' if 'avx' in flags else 'no'}; memory {read_memory_gb():.1f} GB", file=out)
     print(f"network devices visible to the assistant: {isolation_report()}", file=out)
@@ -332,14 +406,18 @@ def ask(question, max_tokens=None, out=sys.stdout):
     try:
         engine.wait_ready()
         print(f"loaded in {time.monotonic() - t0:.0f} s", file=out)
-        print(f"question: {question}", file=out)
+        print(f"question: {question}" + "".join(f" [{a['kind']}: {a['name']}]" for a in attached), file=out)
         out.write("answer: ")
         t1 = time.monotonic()
-        for piece in engine.chat([{"role": "user", "content": question}], max_tokens=max_tokens):
+        first = None
+        for piece in engine.chat([{"role": "user", "content": question, "attachments": attached}],
+                                 max_tokens=max_tokens):
+            if first is None:
+                first = time.monotonic() - t1
             out.write(piece)
             out.flush()
         t = engine.last_timings or {}
-        print(f"\nanswered in {time.monotonic() - t1:.0f} s; "
+        print(f"\nanswer began after {first or 0:.0f} s; answered in {time.monotonic() - t1:.0f} s; "
               f"{t.get('predicted_n', '?')} tokens at {t.get('predicted_per_second', 0):.1f} tokens per second "
               f"(reading the question: {t.get('prompt_per_second', 0):.1f} per second)", file=out)
     finally:
@@ -348,14 +426,29 @@ def ask(question, max_tokens=None, out=sys.stdout):
 
 # ---------------------------------------------------------------- window
 
-def run_window(demo=None, screenshot=None):
+def run_window(demo=None, screenshot=None, demo_picture=None, demo_recording=None):
     """Open the chat window. `demo` and `screenshot` are for tests: ask one question
     by itself, save a picture of the window when it is answered, and close."""
     import fcntl
-    from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal
-    from PyQt6.QtGui import QIcon, QTextCursor
-    from PyQt6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMainWindow, QMessageBox,
-                                 QPlainTextEdit, QPushButton, QTextBrowser, QVBoxLayout, QWidget)
+    from PyQt6.QtCore import QBuffer, QIODevice, Qt, QThread, QTimer, pyqtSignal
+    from PyQt6.QtGui import QIcon, QImage, QTextCursor
+    from PyQt6.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel, QMainWindow,
+                                 QMessageBox, QPlainTextEdit, QPushButton, QTextBrowser,
+                                 QVBoxLayout, QWidget)
+
+    def load_picture(path):
+        """Read a picture of any kind Qt knows, shrink a large photo, and hand it
+        over as PNG. A phone photo is far bigger than Gemma can take in."""
+        img = QImage(path)
+        if img.isNull():
+            raise GemmaError(f"{os.path.basename(path)} could not be opened as a picture.")
+        if max(img.width(), img.height()) > 1600:
+            img = img.scaled(1600, 1600, Qt.AspectRatioMode.KeepAspectRatio,
+                             Qt.TransformationMode.SmoothTransformation)
+        buf = QBuffer()
+        buf.open(QIODevice.OpenModeFlag.WriteOnly)
+        img.save(buf, "PNG")
+        return attachment("picture", path, bytes(buf.data()))
 
     app = QApplication(sys.argv)
     app.setApplicationName("Gemma")
@@ -432,7 +525,8 @@ def run_window(demo=None, screenshot=None):
             self.setWindowTitle("Gemma")
             self.resize(760, 640)
             self.engine = Engine()
-            self.messages = []   # the conversation: [{"role", "content"}]
+            self.messages = []   # the conversation: [{"role", "content", "attachments"}]
+            self.pending = []    # pictures and recordings waiting to go with the next question
             self.partial = None  # the answer being written
             self.answer = None
             self.started = 0.0
@@ -449,6 +543,14 @@ def run_window(demo=None, screenshot=None):
             self.stop_btn.clicked.connect(self.on_stop)
             self.new_btn = QPushButton("New chat")
             self.new_btn.clicked.connect(self.on_new)
+            self.pic_btn = QPushButton("Add a picture…")
+            self.pic_btn.clicked.connect(self.on_add_picture)
+            self.rec_btn = QPushButton("Add a recording…")
+            self.rec_btn.clicked.connect(self.on_add_recording)
+            self.clear_btn = QPushButton("Remove")
+            self.clear_btn.clicked.connect(self.on_clear_pending)
+            self.pending_label = QLabel()
+            self.pending_label.setWordWrap(True)
             self.status = QLabel()
             self.status.setWordWrap(True)
             about = QLabel("Gemma runs on this computer only. Nothing you type is sent anywhere. "
@@ -462,9 +564,18 @@ def run_window(demo=None, screenshot=None):
             row = QHBoxLayout()
             row.addWidget(self.input, 1)
             row.addLayout(buttons)
+            self.attach_row = QWidget()
+            attach = QHBoxLayout(self.attach_row)
+            attach.setContentsMargins(0, 0, 0, 0)
+            attach.addWidget(self.pic_btn)
+            attach.addWidget(self.rec_btn)
+            attach.addWidget(self.pending_label, 1)
+            attach.addWidget(self.clear_btn)
+            self.attach_row.hide()  # shown once Gemma has loaded with eyes and ears
             col = QVBoxLayout()
             col.addWidget(about)
             col.addWidget(self.view, 1)
+            col.addWidget(self.attach_row)
             col.addLayout(row)
             col.addWidget(self.status)
             w = QWidget()
@@ -480,23 +591,59 @@ def run_window(demo=None, screenshot=None):
             self.loader.failed.connect(self.on_load_failed)
             self.loader.start()
 
+        def show_pending(self):
+            names = ", ".join(a["name"] for a in self.pending)
+            self.pending_label.setText(("Attached: " + names) if names else "")
+            self.clear_btn.setVisible(bool(self.pending))
+
+        def add_pending(self, make):
+            try:
+                self.pending.append(make())
+            except GemmaError as e:
+                QMessageBox.warning(self, "Gemma", str(e))
+            self.show_pending()
+
+        def on_add_picture(self):
+            pattern = "Pictures (" + " ".join("*." + t for t in PICTURE_TYPES) + ")"
+            path, _ = QFileDialog.getOpenFileName(self, "Choose a picture", os.path.expanduser("~"), pattern)
+            if path:
+                self.add_pending(lambda: load_picture(path))
+
+        def on_add_recording(self):
+            pattern = "Sound recordings (" + " ".join("*." + t for t in RECORDING_TYPES) + ")"
+            path, _ = QFileDialog.getOpenFileName(self, "Choose a recording", os.path.expanduser("~"), pattern)
+            if path:
+                self.add_pending(lambda: attachment("recording", path))
+
+        def on_clear_pending(self):
+            self.pending = []
+            self.show_pending()
+
         def set_busy(self, busy, text=None, answering=False):
             self.send_btn.setEnabled(not busy)
             self.new_btn.setEnabled(not busy)
+            self.pic_btn.setEnabled(not busy)
+            self.rec_btn.setEnabled(not busy)
             self.stop_btn.setEnabled(answering)
             if text is not None:
                 self.status.setText(text)
 
         def on_ready(self):
             self.set_busy(False, "Ready.")
+            self.attach_row.setVisible(self.engine.senses)
+            self.show_pending()
             self.input.setFocus()
-            if demo:
+            if demo is not None:
+                if demo_picture:
+                    self.add_pending(lambda: load_picture(demo_picture))
+                if demo_recording:
+                    self.add_pending(lambda: attachment("recording", demo_recording))
                 self.input.setPlainText(demo)
                 self.on_send()
 
         def on_load_failed(self, text):
             self.set_busy(True, "Gemma could not start.")
-            if demo:
+            if demo is not None:
                 print("Gemma: " + text, file=sys.stderr)
                 QTimer.singleShot(0, self.close)
                 return
@@ -508,19 +655,33 @@ def run_window(demo=None, screenshot=None):
                                      if self.partial is not None else [])
             for m in shown:
                 who = "You" if m["role"] == "user" else "Gemma"
-                parts.append(f"**{who}**\n\n{m['content']}")
+                files = "".join(f"\n\n*[{a['kind'].capitalize()}: {a['name']}]*"
+                                for a in m.get("attachments") or [])
+                parts.append(f"**{who}**{files}\n\n{m['content']}")
             self.view.setMarkdown("\n\n---\n\n".join(parts))
             self.view.moveCursor(QTextCursor.MoveOperation.End)
 
         def on_send(self):
             text = self.input.toPlainText().strip()
-            if not text or not self.send_btn.isEnabled():
+            if not self.send_btn.isEnabled():
+                return
+            if not text and self.pending:
+                kinds = {a["kind"] for a in self.pending}
+                text = "Describe this picture." if kinds == {"picture"} else "What is said in this recording?"
+            if not text:
                 return
             self.input.clear()
-            self.messages.append({"role": "user", "content": text})
+            attached, self.pending = self.pending, []
+            self.show_pending()
+            self.messages.append({"role": "user", "content": text, "attachments": attached})
             self.partial = ""
             self.started = time.monotonic()
-            self.set_busy(True, "Gemma is thinking…", answering=True)
+            waiting = "Gemma is thinking…"
+            if any(a["kind"] == "picture" for a in attached):
+                waiting = "Gemma is looking at the picture. This can take several minutes…"
+            elif attached:
+                waiting = "Gemma is listening to the recording…"
+            self.set_busy(True, waiting, answering=True)
             self.answer = Answer(self.engine, list(self.messages))
             self.answer.piece.connect(self.on_piece)
             self.answer.finished_ok.connect(self.on_done)
@@ -549,7 +710,7 @@ def run_window(demo=None, screenshot=None):
             secs = time.monotonic() - self.started
             self.set_busy(False, "Stopped." if stopped else f"Answered in {secs:.0f} seconds.")
             self.input.setFocus()
-            if demo:
+            if demo is not None:
                 if screenshot:
                     self.grab().save(screenshot)
                 QTimer.singleShot(200, self.close)
@@ -565,6 +726,7 @@ def run_window(demo=None, screenshot=None):
 
         def on_new(self):
             self.messages = []
+            self.on_clear_pending()
             self.render()
             self.status.setText("Ready.")
 
@@ -587,6 +749,8 @@ def main(argv=None):
     ap.add_argument("--max-tokens", type=int, default=None)
     ap.add_argument("--isolation", action="store_true",
                     help="list the network devices the assistant can see")
+    ap.add_argument("--picture", metavar="FILE", help="with --ask: a picture to ask about")
+    ap.add_argument("--recording", metavar="FILE", help="with --ask: a sound recording to ask about")
     ap.add_argument("--demo", metavar="QUESTION", help=argparse.SUPPRESS)
     ap.add_argument("--screenshot", metavar="FILE", help=argparse.SUPPRESS)
     a = ap.parse_args(argv)
@@ -595,9 +759,9 @@ def main(argv=None):
             print("network devices visible to the assistant:", isolation_report())
             return 0
         if a.ask:
-            ask(a.ask, a.max_tokens)
+            ask(a.ask, a.max_tokens, picture=a.picture, recording=a.recording)
             return 0
-        return run_window(a.demo, a.screenshot)
+        return run_window(a.demo, a.screenshot, a.picture, a.recording)
     except GemmaError as e:
         print(f"Gemma: {e}", file=sys.stderr)
         return 1

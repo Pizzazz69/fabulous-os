@@ -4,6 +4,9 @@
 # The build stops if a checksum does not match.
 # Checked by Claude on 14 November 2026 against
 #   https://huggingface.co/api/models/google/gemma-4-E2B-it-qat-q4_0-gguf/tree/main
+# The second file is Google's add-on that lets Gemma look at pictures and listen
+# to recordings (added at David's request, 14 November 2026).
 # Licence: Apache 2.0 (shipped as /usr/share/doc/fabulous-gemma/).
 # sha256  bytes  file  source
 fa401b55b07ee70a54c6dae3903c783a6e65064312529ea57175cb5f8dec6634 3349516256 gemma-4-E2B_q4_0-it.gguf https://huggingface.co/google/gemma-4-E2B-it-qat-q4_0-gguf/resolve/675cff42a74c774d6cb76f76d8eacb49b48c9b93/gemma-4-E2B_q4_0-it.gguf
+021059cce659fe7f9170d5599761d7bbaf644b798dab9503aca30dc43e6beb14 986833664 gemma-4-E2B-it-mmproj.gguf https://huggingface.co/google/gemma-4-E2B-it-qat-q4_0-gguf/resolve/675cff42a74c774d6cb76f76d8eacb49b48c9b93/gemma-4-E2B-it-mmproj.gguf

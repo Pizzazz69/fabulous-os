@@ -139,7 +139,7 @@ jobs:
             echo "sendkey ret" | sudo socat - unix-connect:/tmp/mon-$name || true
             sleep $wait
             echo "screendump /tmp/$name.ppm" | sudo socat - unix-connect:/tmp/mon-$name || true
-            for i in $(seq 1 120); do
+            for i in $(seq 1 240); do
               sudo grep -aq "SELFTEST GEMMA DONE" /tmp/$name-serial.log && break; sleep 10
             done
             echo quit | sudo socat - unix-connect:/tmp/mon-$name || true
@@ -178,6 +178,10 @@ jobs:
             grep -aq "tokens per second" $f || problem "$n: Gemma did not answer."
             grep -aq "gemma exit code: 0" $f || problem "$n: Gemma's program reported an error."
             grep -aqF "network devices visible to the assistant: ['lo']" $f || problem "$n: the assistant was not cut off from the network."
+            grep -a -E "^(picture|recording) answer:" $f | sed "s/^/$n: /" | tee -a $r || true
+            grep -a "^picture answer:" $f | grep -aqi "fabulous" || problem "$n: Gemma did not read the words in the test picture."
+            grep -a "^picture answer:" $f | grep -aqi "red" || problem "$n: Gemma did not see the red circle in the test picture."
+            grep -a "^recording answer:" $f | grep -aqi "london" || problem "$n: Gemma did not hear the test recording."
           done
           grep -aq "AVX2 no, AVX no" shots/legacy-bios-selfcheck.txt || problem "the no-AVX test machine did have AVX, so that test proves nothing."
           grep -aq "AVX2 yes" shots/uefi-secure-boot-selfcheck.txt || problem "the modern test machine had no AVX2."

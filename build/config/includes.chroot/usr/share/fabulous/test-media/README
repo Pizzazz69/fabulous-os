@@ -1,0 +1,4 @@
+Two small files the self-check uses to test that Gemma can see and hear:
+shapes.png  a red circle, a blue square and the words "FABULOUS 42" (drawn by a script)
+speech.wav  a computer voice saying "The train to London leaves at half past nine
+            on Tuesday morning." (made with the free "flite" speech synthesiser)

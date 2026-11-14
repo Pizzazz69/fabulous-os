@@ -42,6 +42,15 @@ if [ "$mode" = gemma ] || [ "$mode" = full ]; then
     runuser -u nobody -- timeout 1200 /usr/local/bin/fabulous-gemma \
         --ask "Why is the sky blue? Answer in about 50 words." --max-tokens 150 2>&1
     echo "gemma exit code: $?"
+    m=/usr/share/fabulous/test-media
+    echo "--- gemma looks at a picture (a red circle, a blue square, the words FABULOUS 42)"
+    runuser -u nobody -- timeout 1800 /usr/local/bin/fabulous-gemma \
+        --ask "What does this picture show? Include any writing." --picture $m/shapes.png --max-tokens 120 2>&1 \
+        | sed 's/^answer:/picture answer:/'
+    echo "--- gemma listens to a recording (The train to London leaves at half past nine on Tuesday morning.)"
+    runuser -u nobody -- timeout 1800 /usr/local/bin/fabulous-gemma \
+        --ask "Write down exactly what is said in this recording." --recording $m/speech.wav --max-tokens 60 2>&1 \
+        | sed 's/^answer:/recording answer:/'
     echo "--- network services listening now, with the program behind each (empty = none)"
     ss -H -tulnp
     echo "=== FABULOUS SELFTEST GEMMA DONE ==="

@@ -10,6 +10,10 @@ Model:   gemma-4-E2B_q4_0-it.gguf, from Google's own repository
          The exact revision and SHA-256 checksum are in models.lock in the
          Fabulous OS repository; the build refuses a file that does not match.
          Licence: Apache 2.0 (Gemma-LICENSE-Apache-2.0 in this folder).
+Add-on:  gemma-4-E2B-it-mmproj.gguf, from the same repository of Google's,
+         same licence. It lets Gemma look at pictures and listen to sound
+         recordings that you attach. Looking at a picture can take minutes
+         on a slow processor, and Gemma can misreport what it sees or hears.
 Program: llama.cpp, MIT licence (llama.cpp-LICENSE-MIT and
          llama.cpp-VERSION in this folder).
 
