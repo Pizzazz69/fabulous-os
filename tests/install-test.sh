@@ -94,6 +94,8 @@ grep -a "^picture answer:" "$OUT/install-selfcheck.txt" | grep -aqi "fabulous" |
 grep -a "^recording answer:" "$OUT/install-selfcheck.txt" | grep -aqi "london" || problem "Gemma did not hear the test recording on the installed system."
 need "AVX2 no, AVX no" "The installed system's test processor had AVX, so the no-AVX test proves nothing."
 grep -aqF "network devices visible to the assistant: ['lo']" "$OUT/install-selfcheck.txt" || problem "The assistant was not cut off from the network."
+grep -aqE "^sda +1 " "$OUT/install-selfcheck.txt" || problem "The internal disk was not read-only on the installed system."
+grep -aqE "^sdb +0 " "$OUT/install-selfcheck.txt" || problem "The external drive Fabulous OS runs from was made read-only."
 need "^sdb .* usb .*disk" "The installed system does not see itself on a USB drive."
 grep -aqE "^sda +1 " "$OUT/install-stick-selfcheck.txt" || problem "The internal disk was not read-only in the stick session."
 echo "problems: $problems" | tee -a "$OUT/install-result.txt"

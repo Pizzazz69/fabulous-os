@@ -1,0 +1,16 @@
+[Unit]
+Description=Fabulous OS: make the computer's internal disks read-only
+# The stick session does this itself (fabulous-stick-session); this is for the
+# installed system on its external drive.
+ConditionPathExists=!/run/live/medium
+Before=display-manager.service udisks2.service
+After=systemd-udev-settle.service local-fs.target
+Wants=systemd-udev-settle.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/fabulous-protect-internal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,28 @@
+#!/bin/sh
+# Make every internal disk of the computer read-only until the next start.
+# Runs at every start-up: from the stick ("Try it first", the installer) and on the
+# installed system on its external drive. Windows and anything else on the PC's own
+# disks can then be looked at but not changed, whatever is clicked.
+# Left alone: the drive Fabulous OS itself is running from, and every USB or
+# removable drive.
+if [ -e /run/live/medium ]; then own=$(findmnt -n -o SOURCE /run/live/medium)
+else own=$(findmnt -n -o SOURCE /); fi
+owndisk=$(lsblk -n -s -o NAME,TYPE -r "$own" 2>/dev/null | awk '$2=="disk"||$2=="rom"{print $1; exit}')
+[ -n "$owndisk" ] || owndisk=${own##*/}
+if [ -z "$owndisk" ] || [ ! -b "/dev/$owndisk" ]; then
+    # Never guess: making our own drive read-only would break the running system.
+    echo "fabulous: could not tell which drive Fabulous OS runs from ($own); internal disks NOT protected" >&2
+    exit 1
+fi
+for d in /sys/block/*; do
+    n=${d##*/}
+    case "$n" in loop*|ram*|zram*|sr*|dm-*|md*|fd*) continue ;; esac
+    [ "$n" = "$owndisk" ] && continue
+    [ "$(cat "$d/removable" 2>/dev/null)" = 1 ] && continue
+    case "$(readlink -f "$d/device" 2>/dev/null)" in */usb*) continue ;; esac
+    for dev in "/dev/$n" /dev/"$n"?*; do
+        [ -b "$dev" ] && blockdev --setro "$dev"
+    done
+    echo "fabulous: internal disk $n is read-only (Fabulous OS runs from $owndisk)"
+done
+exit 0

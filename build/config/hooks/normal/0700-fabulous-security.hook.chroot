@@ -41,6 +41,8 @@ else
     echo "FABULOUS-WARNING: Virus Scanner menu entry not found"
 fi
 chmod 0755 /usr/local/bin/fabulous-virus-scanner /usr/local/sbin/fabulous-stick-session
+chmod 0755 /usr/local/sbin/fabulous-protect-internal
+systemctl enable fabulous-protect-internal.service || echo "FABULOUS-WARNING: internal disks are NOT protected on the installed system"
 systemctl enable fabulous-stick-session.service || echo "FABULOUS-WARNING: internal disks are NOT protected in the stick session"
 
 # Self-check used by the build servers' test machines (see the script for when it runs).

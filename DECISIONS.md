@@ -100,3 +100,9 @@ Each entry: what was decided, why, and whether it has been verified.
 | The question is sent before the attachment, and sampling is less inventive (temperature 0.2) whenever a picture or recording is in the conversation. | The other order made Gemma deny it could hear; the normal setting misheard a time of day in 5 of 9 tries in one batch. | Workspace tests. |
 | Pictures are looked at in the model's standard detail, not reduced. | Reduced detail was faster (80 s against 145 s) but reading writing in pictures matters. David may prefer speed. | — |
 | Rules: E2B's memory figure is now 4.6 GB. | Measured with the add-on loaded. | Workspace. |
+
+## Added 14 November 2026, evening (internal disks on the installed system)
+
+| Decision | Reason | Verified? |
+| --- | --- | --- |
+| **The installed system also makes every internal disk read-only at each start** (`fabulous-protect-internal`), as the stick session already did. Windows' disk can be looked at from Fabulous OS but not changed. Left alone: the drive Fabulous OS runs from, and all USB or removable drives. If the system cannot tell which drive it runs from, it protects nothing and says so, rather than risk locking its own drive. | David's decision. Until build 11 the protection existed only when started from the stick, so a file saved onto the Windows disk from the installed system would have changed it. | See TESTING.md (build 12). |

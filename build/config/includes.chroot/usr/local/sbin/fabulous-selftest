@@ -25,6 +25,9 @@ echo "--- rules"
 fabulous-probe --stdout > /run/fabulous-selftest-profile.json && fabulous-rules /run/fabulous-selftest-profile.json
 echo "--- disks"
 lsblk -o NAME,RO,RM,TRAN,SIZE,TYPE,FSTYPE,MOUNTPOINT
+echo "--- internal disk protection"
+systemctl is-active fabulous-stick-session.service fabulous-protect-internal.service 2>&1 | tr "\n" " "; echo
+journalctl -b --no-pager -o cat -t fabulous-protect-internal -t fabulous-stick-session 2>/dev/null | grep -a "fabulous:" | head -5
 echo "--- memory"
 free -m
 echo "--- services that failed to start (empty = none)"
