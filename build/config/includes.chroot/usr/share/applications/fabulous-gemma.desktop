@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Gemma
+GenericName=AI Assistant
+Comment=Ask questions of an AI assistant that runs on this computer only
+Exec=/usr/local/bin/fabulous-gemma
+Icon=fabulous-gemma
+Terminal=false
+Categories=Utility;
+Keywords=AI;assistant;chat;ask;
+StartupWMClass=fabulous-gemma

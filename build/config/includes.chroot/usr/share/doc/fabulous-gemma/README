@@ -1,0 +1,16 @@
+Gemma in Fabulous OS
+====================
+
+The assistant is Google's Gemma 4 model (the "E2B" size), run on this computer
+by the open-source program llama.cpp. It needs no internet connection, and it
+is started without any network access at all.
+
+Model:   gemma-4-E2B_q4_0-it.gguf, from Google's own repository
+         https://huggingface.co/google/gemma-4-E2B-it-qat-q4_0-gguf
+         The exact revision and SHA-256 checksum are in models.lock in the
+         Fabulous OS repository; the build refuses a file that does not match.
+         Licence: Apache 2.0 (Gemma-LICENSE-Apache-2.0 in this folder).
+Program: llama.cpp, MIT licence (llama.cpp-LICENSE-MIT and
+         llama.cpp-VERSION in this folder).
+
+Gemma can be wrong. Check anything important.

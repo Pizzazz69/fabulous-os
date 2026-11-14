@@ -3,7 +3,7 @@
 # The test machine has Secure Boot enforcing, an internal 477 GB disk laid out like
 # Windows, and a blank 500 GB external USB drive. The test clicks through the
 # installer, then wipes the firmware's memory and restarts from the external drive,
-# logs in, reads the system's self-check, and finally compares the internal disk
+# logs in, reads the system's self-check, asks Gemma a question, and finally compares the internal disk
 # with a copy taken beforehand: it must be byte-for-byte unchanged.
 # Usage: ISO=/path/to/image.iso OUT=dir tests/install-test.sh
 set -u
@@ -48,7 +48,7 @@ shot 08-users
 vm key alt-n; sleep 6; shot 09-summary
 vm key alt-i; sleep 4; shot 10-after-install-pressed
 vm key alt-i; sleep 4
-for i in 1 2 3 4 5 6 7 8; do sleep 60; vm move $((600+i)) 300; done   # keep the screen awake
+for i in 1 2 3 4 5 6 7 8 9 10 11 12; do sleep 60; vm move $((600+i)) 300; done   # keep the screen awake (the 3.35 GB Gemma file is copied too)
 shot 11-install-finished
 vm_stop
 
@@ -57,12 +57,22 @@ if vm_internal_unchanged; then
 else
     problem "THE INTERNAL DISK WAS CHANGED BY THE INSTALL."
 fi
-vm_start external full
+# The installed system runs on a processor without AVX or AVX2 ("Westmere"), as the
+# Beelink's N5105 is, so that Gemma is tried the way it will have to run there.
+vm_start external full Westmere
 sleep 100; shot 12-login-screen
 vm key shift -- sleep 3 -- type "$PASSWORD" -- key ret
 sleep 60; shot 13-installed-desktop
 vm click 900 250 -- click 632 768; sleep 30; shot 14-brave-on-installed-system
 log="$VMDIR/serial-external.log"
+# Gemma: first wait for the self-check's question (asked without a window), then
+# open the window from the start menu the way a person would and ask one there.
+for i in $(seq 1 120); do sudo grep -aq "SELFTEST GEMMA DONE" "$log" && break; sleep 10; vm move $((600+i%5)) 300; done
+vm key meta_l -- sleep 4 -- type gemma -- sleep 4 -- key ret
+sleep 60; shot 15-gemma-window
+vm type "name three fruits" -- key ret
+for i in 1 2 3 4 5 6 7 8 9; do sleep 10; vm move $((600+i)) 300; done
+shot 16-gemma-answer
 for i in $(seq 1 90); do sudo grep -aq "SELFTEST FULL DONE" "$log" && break; sleep 10; done
 vm_stop
 vm_internal_unchanged >/dev/null || problem "THE INTERNAL DISK WAS CHANGED BY RUNNING THE INSTALLED SYSTEM."
@@ -77,6 +87,10 @@ need "^Status: active" "The firewall is not active in the installed system."
 need "deny (incoming)" "The firewall does not refuse incoming connections."
 need "FOUND" "The virus scanner did not detect the standard test file."
 need "timezone: Europe/London" "The installed system is not set to London."
+need "tokens per second" "Gemma did not answer on the installed system."
+need "gemma exit code: 0" "Gemma's program reported an error on the installed system."
+need "AVX2 no, AVX no" "The installed system's test processor had AVX, so the no-AVX test proves nothing."
+grep -aqF "network devices visible to the assistant: ['lo']" "$OUT/install-selfcheck.txt" || problem "The assistant was not cut off from the network."
 need "^sdb .* usb .*disk" "The installed system does not see itself on a USB drive."
 grep -aqE "^sda +1 " "$OUT/install-stick-selfcheck.txt" || problem "The internal disk was not read-only in the stick session."
 echo "problems: $problems" | tee -a "$OUT/install-result.txt"

@@ -1,0 +1,6 @@
+# The program that runs Gemma: llama.cpp (MIT licence), built from source at one
+# fixed commit. Debian 13 carries no program that can run Gemma 4.
+# b12110 is the build that llama.cpp's release v0.9.0 (4 November 2026) points to.
+LLAMA_REPO=https://github.com/ggml-org/llama.cpp
+LLAMA_TAG=b12110
+LLAMA_COMMIT=cd959bae99ff4bed22bef2604f45241c09bbb8c8

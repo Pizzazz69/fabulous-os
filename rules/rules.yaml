@@ -9,7 +9,7 @@ model_ladder: [e4b, e2b, none]
 
 models:
   e4b:  {label: "Gemma 4 E4B", memory_needed_gb: 4.5}
-  e2b:  {label: "Gemma 4 E2B", memory_needed_gb: 2.9}
+  e2b:  {label: "Gemma 4 E2B", memory_needed_gb: 3.5}  # measured 14 Nov 2026: 3.47 GB in use while answering
   none: {label: null,          memory_needed_gb: 0}
 
 # First matching band wins (memory.total_gb < below_gb).

@@ -10,7 +10,8 @@ tasks.writeConfig("launchers", [
     "applications:org.kde.dolphin.desktop",
     "applications:brave-browser.desktop",
     "applications:org.kde.discover.desktop",
-    "applications:systemsettings.desktop"
+    "applications:systemsettings.desktop",
+    "applications:fabulous-gemma.desktop"
 ]);
 panel.addWidget("org.kde.plasma.panelspacer");
 panel.addWidget("org.kde.plasma.systemtray");

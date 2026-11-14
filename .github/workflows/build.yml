@@ -50,6 +50,39 @@ jobs:
             -font DejaVu-Sans -pointsize 22 -annotate +0+22 'based on Debian' $b/fabulous-welcome.png
           ls -l $b
 
+      - name: Gemma's program (llama.cpp at a fixed commit), kept between builds
+        id: llama-cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/llama
+          key: llama-${{ hashFiles('build/llama.lock', 'build/build-llama.sh') }}
+
+      - name: Build Gemma's program inside Debian 13
+        if: steps.llama-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .cache
+          docker run --rm -v "$PWD":/work -w /work debian:trixie \
+            bash build/build-llama.sh build/llama.lock /work/.cache/llama
+
+      - name: Gemma model file, kept between builds
+        uses: actions/cache@v4
+        with:
+          path: .cache/models
+          key: models-${{ hashFiles('models.lock') }}
+
+      - name: Fetch Google's Gemma file and check it against models.lock
+        run: |
+          root=build/config/includes.chroot
+          bash build/fetch-models.sh models.lock .cache/models $root/usr/share/fabulous/models
+          sudo mkdir -p $root/opt/fabulous-gemma/bin $root/usr/share/doc/fabulous-gemma
+          sudo cp -a .cache/llama/bin/. $root/opt/fabulous-gemma/bin/
+          sudo cp -r .cache/llama/doc/. $root/usr/share/doc/fabulous-gemma/
+          cp models.lock $root/usr/share/doc/fabulous-gemma/models.lock
+          cp packages/fabulous-gemma/fabulous_gemma.py $root/usr/local/bin/fabulous-gemma
+          chmod 0755 $root/usr/local/bin/fabulous-gemma
+          ls -l $root/opt/fabulous-gemma/bin $root/usr/share/fabulous/models $root/usr/share/doc/fabulous-gemma
+          df -h /
+
       - name: Build the image inside Debian 13
         run: |
           docker run --privileged --rm -v "$PWD":/work -w /work/build debian:trixie bash -euxc '
@@ -71,40 +104,69 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf imagemagick
           iso=$(ls build/*.iso)
-          if [ -w /dev/kvm ] || sudo test -e /dev/kvm; then accel="-enable-kvm -cpu host"; wait=180
-          else accel="-cpu max"; wait=900; fi
+          # The model file is now inside the image; free the build's copies of it.
+          sudo rm -rf build/chroot build/binary build/config/includes.chroot/usr/share/fabulous/models
+          df -h / /mnt
+          if [ -w /dev/kvm ] || sudo test -e /dev/kvm; then accel="-enable-kvm"; wait=180
+          else echo "PROBLEM: no KVM on this build server; Gemma cannot be tested" | tee -a shots-problem.txt; accel=""; wait=900; fi
           echo "acceleration: $accel"
           mkdir -p shots
-          shoot() {  # name, extra qemu args...
-            name=$1; shift
-            sudo qemu-system-x86_64 $accel -m 4096 -smp 2 -display none -vga std \
+          # Each test machine: 8 GB of memory and 4 processor cores. It starts from the
+          # image, shows the desktop, and its self-check asks Gemma one question.
+          shoot() {  # name, processor, extra qemu args...
+            name=$1; cpu=$2; shift 2
+            sudo qemu-system-x86_64 $accel -cpu $cpu -m 8192 -smp 4 -display none -vga std \
               -cdrom "$iso" -monitor unix:/tmp/mon-$name,server,nowait -daemonize \
               -serial file:/tmp/$name-serial.log \
-              -smbios type=11,value=io.systemd.credential:fabulous.selftest=basic "$@"
+              -smbios type=11,value=io.systemd.credential:fabulous.selftest=gemma "$@"
             sleep 12
             echo "screendump /tmp/$name-menu.ppm" | sudo socat - unix-connect:/tmp/mon-$name || true
             echo "sendkey ret" | sudo socat - unix-connect:/tmp/mon-$name || true
             sleep $wait
             echo "screendump /tmp/$name.ppm" | sudo socat - unix-connect:/tmp/mon-$name || true
-            sleep 2
+            for i in $(seq 1 120); do
+              sudo grep -aq "SELFTEST GEMMA DONE" /tmp/$name-serial.log && break; sleep 10
+            done
             echo quit | sudo socat - unix-connect:/tmp/mon-$name || true
+            sleep 3
             sudo convert /tmp/$name-menu.ppm shots/$name-menu.png || true
             sudo convert /tmp/$name.ppm shots/$name.png || true
-            sudo cat /tmp/$name-serial.log > shots/$name-selfcheck.txt || true
+            sudo cat /tmp/$name-serial.log | tr -d '\000\r' > shots/$name-selfcheck.txt || true
             echo "=== self-check from $name ==="; cat shots/$name-selfcheck.txt
           }
           sudo apt-get install -y --no-install-recommends socat
           cp /usr/share/OVMF/OVMF_VARS_4M.ms.fd /tmp/vars.fd
-          shoot uefi-secure-boot -machine q35,smm=on \
+          # A modern processor (whatever the build server has, with AVX2).
+          shoot uefi-secure-boot host -machine q35,smm=on \
             -global driver=cfi.pflash01,property=secure,value=on \
             -drive if=pflash,format=raw,unit=0,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.secboot.fd \
             -drive if=pflash,format=raw,unit=1,file=/tmp/vars.fd
-          shoot legacy-bios
+          # A processor without AVX or AVX2, like the Beelink's N5105 ("Westmere":
+          # SSE4.2 is its highest instruction set).
+          shoot legacy-bios Westmere
           ls -l shots
 
       - name: Install onto a blank test disk, restart from it, and check
         run: |
           ISO=$(ls "$PWD"/build/*.iso) OUT="$PWD/shots" bash tests/install-test.sh
+
+      - name: Did Gemma answer in every test machine?
+        if: always()
+        run: |
+          r=shots/gemma-result.txt; : > $r; bad=0
+          problem() { echo "PROBLEM: $*" | tee -a $r; bad=1; }
+          [ -f shots-problem.txt ] && { cat shots-problem.txt >> $r; bad=1; }
+          for n in uefi-secure-boot legacy-bios; do
+            f=shots/$n-selfcheck.txt
+            grep -a "tokens per second" $f | sed "s/^/$n: /" | tee -a $r || true
+            grep -aq "tokens per second" $f || problem "$n: Gemma did not answer."
+            grep -aq "gemma exit code: 0" $f || problem "$n: Gemma's program reported an error."
+            grep -aqF "network devices visible to the assistant: ['lo']" $f || problem "$n: the assistant was not cut off from the network."
+          done
+          grep -aq "AVX2 no, AVX no" shots/legacy-bios-selfcheck.txt || problem "the no-AVX test machine did have AVX, so that test proves nothing."
+          grep -aq "AVX2 yes" shots/uefi-secure-boot-selfcheck.txt || problem "the modern test machine had no AVX2."
+          echo "problems: $bad" | tee -a $r
+          [ $bad -eq 0 ]
 
       - uses: actions/upload-artifact@v4
         if: always()

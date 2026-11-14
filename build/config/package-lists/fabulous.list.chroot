@@ -52,3 +52,7 @@ curl
 # Security: firewall, on from the first start (DECISIONS.md, 13 November 2026)
 ufw
 iproute2
+
+# Gemma assistant: its window (Qt) and what the program that runs the model needs
+python3-pyqt6
+libgomp1

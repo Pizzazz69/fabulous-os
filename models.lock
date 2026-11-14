@@ -1,0 +1,9 @@
+# Gemma model files shipped in the image (non-negotiable 5).
+# Only Google's own releases; each file is pinned to one revision of Google's
+# repository and checked against the SHA-256 that Google's repository publishes.
+# The build stops if a checksum does not match.
+# Checked by Claude on 14 November 2026 against
+#   https://huggingface.co/api/models/google/gemma-4-E2B-it-qat-q4_0-gguf/tree/main
+# Licence: Apache 2.0 (shipped as /usr/share/doc/fabulous-gemma/).
+# sha256  bytes  file  source
+fa401b55b07ee70a54c6dae3903c783a6e65064312529ea57175cb5f8dec6634 3349516256 gemma-4-E2B_q4_0-it.gguf https://huggingface.co/google/gemma-4-E2B-it-qat-q4_0-gguf/resolve/675cff42a74c774d6cb76f76d8eacb49b48c9b93/gemma-4-E2B_q4_0-it.gguf

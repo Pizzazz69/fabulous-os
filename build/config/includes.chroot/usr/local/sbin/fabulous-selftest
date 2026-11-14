@@ -3,6 +3,7 @@
 # serial port, where the build servers' test machine records them.
 # Changes nothing, except in "full" mode, where it downloads virus signatures
 # (test machines only) to prove the scanner really detects something.
+# In "gemma" and "full" modes it also asks Gemma one question, as an ordinary user.
 mode=$(cat "$CREDENTIALS_DIRECTORY/fabulous.selftest" 2>/dev/null || echo basic)
 exec > /dev/ttyS0 2>&1
 echo "=== FABULOUS SELFTEST BEGIN (mode: $mode) ==="
@@ -32,7 +33,19 @@ echo "--- scanner"
 clamscan --version
 systemctl is-enabled clamav-daemon 2>&1 | sed 's/^/always-on scanner service: /'
 systemctl is-active clamav-freshclam 2>&1 | sed 's/^/signature updater: /'
+echo "--- gemma"
+ls -l /usr/share/fabulous/models/ /opt/fabulous-gemma/bin/llama-server 2>&1
+runuser -u nobody -- /usr/local/bin/fabulous-gemma --isolation 2>&1
 echo "=== FABULOUS SELFTEST BASIC DONE ==="
+if [ "$mode" = gemma ] || [ "$mode" = full ]; then
+    echo "--- gemma answers a question (as an ordinary user)"
+    runuser -u nobody -- timeout 1200 /usr/local/bin/fabulous-gemma \
+        --ask "Why is the sky blue? Answer in about 50 words." --max-tokens 150 2>&1
+    echo "gemma exit code: $?"
+    echo "--- network services listening after Gemma ran (empty = none)"
+    ss -H -tuln
+    echo "=== FABULOUS SELFTEST GEMMA DONE ==="
+fi
 if [ "$mode" = full ]; then
     echo "--- scanner detection test"
     systemctl start fabulous-signatures.service; echo "signature fetch exit code: $?"
