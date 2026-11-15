@@ -106,3 +106,11 @@ Each entry: what was decided, why, and whether it has been verified.
 | Decision | Reason | Verified? |
 | --- | --- | --- |
 | **The installed system also makes every internal disk read-only at each start** (`fabulous-protect-internal`), as the stick session already did. Windows' disk can be looked at from Fabulous OS but not changed. Left alone: the drive Fabulous OS runs from, and all USB or removable drives. If the system cannot tell which drive it runs from, it protects nothing and says so, rather than risk locking its own drive. | David's decision. Until build 11 the protection existed only when started from the stick, so a file saved onto the Windows disk from the installed system would have changed it. | See TESTING.md (build 12). |
+
+## Added 15 November 2026 (no build)
+
+| Decision | Reason | Verified? |
+| --- | --- | --- |
+| **One Gemma for every PC: E2B only.** No larger model is added for stronger PCs; they run the same model faster. | David's decision. The people he may give the image to have ordinary home PCs with 16 GB, or 32 GB at most. | Read in the code, not run: the Gemma window uses the rules only to allow or refuse Gemma and always loads the shipped E2B. `rules/rules.yaml` still lists E4B; to be tidied. |
+| The image stays in one piece; it is not republished as several smaller files. | David's first download of build 12 failed after about 3 hours (cause unknown). He prefers to retry than to join pieces. | — |
+

@@ -1,8 +1,8 @@
-# Fabulous OS: Brief, version 6
+# Fabulous OS: Brief, version 7
 
 **A Linux system with an offline AI assistant (Gemma 4), run from an external drive beside an untouched Windows PC**
 
-Prepared for David, 14 November 2026 (night), after build 12. This replaces brief version 5 of the same day. Where the two disagree, this one wins. It is written so that a new Claude session can finish the project from it.
+Prepared for David, 15 November 2026 (afternoon). The latest build is still build 12; nothing was built or tested on 15 November. This replaces brief version 6 of 14 November. Where the two disagree, this one wins. It is written so that a new Claude session can finish the project from it.
 
 ---
 
@@ -14,7 +14,7 @@ Prepared for David, 14 November 2026 (night), after build 12. This replaces brie
 
 1. Read this brief, then `DECISIONS.md` and `TESTING.md` in the repository `Pizzazz69/fabulous-os`.
 2. Read section 8 ("How a build works" and "Working notes for Claude"). It tells you how to see test results and what has already gone wrong, so you do not repeat it.
-3. Ask David what happened when he tried build 12 on the Beelink (section 9). **His report from the real PC outranks everything in this brief**, which rests on test machines only. Fix what he found before adding anything new.
+3. Ask David whether the download of build 12 succeeded (it failed once on 15 November; see section 2), and what happened when he tried build 12 on the Beelink (section 9). **His report from the real PC outranks everything in this brief**, which rests on test machines only. Fix what he found before adding anything new.
 4. Then work through section 7 in order.
 5. After each step tell David plainly what was tested, how, and what was not (non-negotiable 9). Record it in `TESTING.md` and `DECISIONS.md`, and update this brief under a new version number at the end of the session.
 
@@ -33,7 +33,8 @@ David is not a programmer. Write to him in plain words, explain any term you mus
 | Protection | Every internal disk is read-only, both when started from the stick and (from build 12) on the installed system; the installer offers only external drives. |
 | Firewall, virus scanner, Secure Boot | Checked from inside the installed system. |
 | Tested on the Beelink | Not yet. Nothing has run on any real PC. |
-| External SSD | Netac Portable SSD, 500 GB, USB 3.2; expected 14 November evening. |
+| Download of build 12 | **Not yet complete when this brief was written.** David's first download (15 November) ran for about 3 hours and ended "download failed" in Chrome, with no reason shown; the cause is not known. His PC's sleep settings were already "never". A second download was at 1.1 of 5.7 GB at 3.16 pm. He plans to do the rest of section 9 on 16 November. |
+| External SSD | Netac Portable SSD, 500 GB, USB 3.2; expected 14 November evening. Claude was not told on 15 November whether it arrived. |
 | Stick | New 128 GB SD card in an SD-to-USB reader, ready. |
 | Gemma 4 | **Included from build 10; can look at pictures and listen to recordings from build 11.** Answers in test machines, including one shaped like the Beelink (no AVX, 16 GB). Speed on the real Beelink is unmeasured. |
 | Office and creative apps | Not yet included (next step) |
@@ -85,6 +86,13 @@ Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows com
 | Internal disks on the installed system | Read-only at every start, as in the stick session. Windows' disk can be looked at, not changed. | David's decision, 14 November evening. |
 | KDE Connect | Removed. | It listened on the network and announced the PC as soon as the desktop started, unasked. Can be reinstalled from the App Store. David may reverse this. |
 
+**Added 15 November 2026:**
+
+| Topic | Decision | Reason |
+| --- | --- | --- |
+| One Gemma for every PC | The image carries Gemma 4 E2B only. A stronger PC gets the same model and simply runs it faster; no larger model is added. | David's decision. Anyone he gives the image to will have an ordinary home PC with 16 GB, or 32 GB at most. |
+| Image in one piece | The image is not to be republished in several smaller pieces. | David would have to join them, which is one more thing that could go wrong. |
+
 ---
 
 ## 5. What exists today
@@ -108,6 +116,7 @@ Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows com
 
 - **Nothing has run on the Beelink, a real external SSD, or a real Windows disk.** The test's "Windows" disk is a pretend one that cannot start; that Windows starts as before is argued from the disk being unchanged.
 - Not checked: that nothing is written to the PC's firmware memory during install.
+- **The image has not been tried on any PC other than test machines, and is not tied to the Beelink.** David may give it to his daughter. What Claude read in the code on 15 November (not run): the Gemma window uses the rules only to decide whether Gemma may run. She runs with 6 GB or more on a processor with AVX2, and with 12 GB or more on one without; below that the window says Gemma cannot run. The model is always the shipped E2B. The rules file still names the larger E4B for a PC with AVX2 and 12 GB or more; the window ignores that and runs E2B. Claude did not check whether any test machine covers that case.
 - **No typed confirmation** before the external drive is erased; only a yes/no question.
 - The log-in screen still shows a small "debian" logo. The installer's heading still says "Calamares installer". The stick's start-up menu says "Debian GNU/Linux", and the installed system's will say "Debian".
 - Not tested: opening the Virus Scanner from the menu; the daily update pop-up; the "App Store" label; Brave in the stick session; Tor Browser; the app store itself.
@@ -133,7 +142,7 @@ Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows com
 
 Done: the automated install test (13 November); Gemma 4 with pictures and recordings (14 November, builds 9 to 11); internal disks read-only on the installed system (build 12).
 
-**Step A. David tries build 12 on the Beelink** (section 9). This is the first run on real hardware. Claude: ask for his report and fix what it shows first. Things to ask him: did the stick start; screen, Wi-Fi, sound; did the installer offer only the SSD; did the SSD start from the F7 menu; how long Gemma takes to load and to answer on the real N5105; does Windows still start normally with the SSD unplugged.
+**Step A. David tries build 12 on the Beelink** (section 9). This is the first run on real hardware. Claude: ask for his report and fix what it shows first. Things to ask him: did the stick start; screen, Wi-Fi, sound; did the installer offer only the SSD; did the SSD start from the F7 menu; how long Gemma takes to load and to answer on the real N5105; does Windows still start normally with the SSD unplugged. First ask whether the download finished. If it keeps failing, David does not want the image in several pieces (section 4); think of another way and put the choices to him.
 
 **Step B. Typed confirmation before erasing** (non-negotiable 3, not yet met). The installer (Calamares) asks only yes/no today. Add a screen where the person must type a word (for example ERASE) before the external drive is erased. Extend `tests/install-test.sh` to type it, and add a check that a wrong word does not start the install.
 
@@ -157,6 +166,7 @@ Try it in the workspace first on a real multi-page .docx and show David the resu
 - Check Brave's settings.
 - Put the mandala and the plain background in a folder the user can open.
 - Delete the scratch branches `vm-control` and `vm-screen`.
+- Tidy `rules/rules.yaml` to match the decision of 15 November (E2B only): it still lists E4B, which is not shipped. Make sure the installer screens of step E never promise E4B. Add a test of a PC with AVX2 and 16 GB.
 - Optional, if David wants faster picture answers: reduced picture detail (`--image-max-tokens 140`) cut the wait from about 145 to about 80 seconds in the workspace, at some cost to reading small writing.
 
 Each build takes about 65 minutes. Finishing all of this is more than one day's work; steps A, B and C matter most.
@@ -194,7 +204,7 @@ Claude can see the screenshots and logs (on the `test-results` branch), but cann
 You have: the Beelink with Windows; the 128 GB SD card in its USB reader (the "stick"); the Netac 500 GB external SSD. Nothing below can change the Beelink's internal disk: Fabulous OS makes it read-only. None of this has been tried on a real PC yet, so if anything differs from what is written here, stop and tell Claude.
 
 **1. Download the image (on Windows).**
-Sign in to github.com, open `github.com/Pizzazz69/fabulous-os`, click **Actions**, then the run named "Installed system: internal disks read-only at every start" with a green tick. At the bottom of that page, under **Artifacts**, click **fabulous-os-image**. A zip file of about 5.7 GB downloads. Open it and copy out the file ending `.iso`. (Available until about 28 November; after that, ask Claude for a new build.)
+Sign in to github.com, open `github.com/Pizzazz69/fabulous-os`, click **Actions**, then the run named "Installed system: internal disks read-only at every start" with a green tick. At the bottom of that page, under **Artifacts**, click **fabulous-os-image**. A zip file of about 5.7 GB downloads. On your internet line this takes about three hours or more. Leave Chrome open until it finishes; if the connection drops, Chrome usually cannot carry on and you have to start again. When it has finished, check the zip is about 5.7 GB and opens without an error message, then copy out the file ending `.iso`. You need about 12 GB free on the disk for the zip and the file inside it. (Available until about 28 November; after that, ask Claude for a new build.)
 
 **2. Write it to the stick.**
 Install balenaEtcher (etcher.balena.io). Plug in the SD-card stick. In Etcher: "Flash from file" and pick the `.iso`; "Select target" and pick the SD card (check the size, about 128 GB, so that you do not pick the SSD); then "Flash". This erases the SD card. If Windows afterwards says the card "needs to be formatted", say **No**.
@@ -291,6 +301,18 @@ Non-negotiable 4, as David clarified on 13 November: a daily check for updates w
 **Mistakes by Claude this session.** The 8 GB test machines (cost one build, about an hour). Gemma's "cannot run" message at first used the installer's wording ("will install without it"). The first build's saved copies of llama.cpp and the model were thrown away because a later test failed, so build 10 fetched and built them again.
 
 **Interrupted once.** David stopped the first llama.cpp build to say the project had gone back to the Beelink; the N5105 is the Beelink's processor, so nothing changed.
+
+### Session of 15 November 2026 (no build)
+
+**Download.** David began section 9. Chrome estimated 3 hours for the 5.7 GB zip; after lunch it showed "download failed" and no file. The cause is not known: his sleep settings were already "never", so Claude's first guess (the PC went to sleep) was wrong or at least unproven. A dropped connection is the other likely cause, because GitHub's link for this kind of file cannot usually be resumed. David started a second download.
+
+**Google Drive.** David asked whether the image could be sent to his Google Drive. Claude said no: the session had no connection to his Drive, Claude's workspace cannot download the image, and the file would still have to come down the same line. Claude offered to republish the image in three pieces; David declined (section 4).
+
+**Other PCs.** David asked whether the image works only on the Beelink or picks a Gemma to suit the PC. Answer: it is not tied to the Beelink; it carries one model (E2B); the Gemma window checks the hardware only to say yes or no. David decided one model is right (section 4). Claude suggested his daughter waits until the Beelink try is done.
+
+**Nothing new built.** David chose to add nothing until he has tried build 12. Only this brief and `DECISIONS.md` were changed.
+
+**Mistake by Claude this session.** Claude first told David it had not re-read the rules file and could not give the memory needed on a newer processor; it then read the file and the window's code, and the figures are in section 6.
 
 ---
 
