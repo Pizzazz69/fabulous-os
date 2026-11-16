@@ -205,3 +205,39 @@ Not tested: a real PC; a stick that is a real USB device (the test "stick" is a 
 the part that works out the stick's own disk from a USB partition has not run); opening the Windows
 disk in the file manager on the installed system (whether it opens read-only or refuses);
 a BitLocker-encrypted Windows disk; a PC with more than one internal disk.
+
+## 16 November 2026: first run on the real Beelink (build 12, reported by David)
+
+Nothing here was seen by Claude. It is David's report from the Beelink (Celeron N5105, 16 GB), the
+128 GB SD card in a USB reader as the stick, and the Netac 500 GB USB SSD. Claude saw two photographs:
+start-up text, and the log-in screen's "Desktop Session" button.
+
+| What | Result on the Beelink |
+| --- | --- |
+| Download of the 5.69 GB zip in Chrome | Succeeded on a later attempt. |
+| Stick starts from the F7 menu under Secure Boot | **Pass.** Listed as "mass storage device 1.00 Partition 2". The hard-hat "Debian GNU/Linux 13 (Trixie)" menu appeared and continued by itself. |
+| Stick opens the desktop without a password | **FAIL.** It stopped at the log-in screen. Entering the stick password (`user` / `live`) flashed the start-up text for under a second and returned to the log-in screen. |
+| Same, after choosing "Plasma (X11)" on the log-in screen's "Desktop Session" button (default: "Plasma (Wayland)") | **Pass.** The desktop came up with password `live`. |
+| Install onto the Netac SSD | **Completed.** David was not asked again whether the SSD was the only drive offered by the installer; his answer described the F7 menu instead. Not confirmed. |
+| SSD starts from the F7 menu | **Pass.** It appeared in the place the stick had held. |
+| Log-in on the installed system | **FAIL with the default session**, pass after choosing "Plasma (X11)". David logged in once; whether the choice is remembered is not known. |
+| Windows afterwards | **Starts normally** (David's report). After a forced power-off the PC switched itself on unattended and started Windows. Whether the SSD was plugged in at that moment was not recorded. |
+| Wi-Fi | Connected (Starlink). Speed not measured. |
+| Sound | **No sound** from a USB speaker ("sound angel") in the stick session, tried with a YouTube video. Not retried on the installed system. Cause not looked into (possibly the wrong output was selected). |
+| Gemma on the installed system | Loads and chats. "Slow, but faster than I can type." **No times were measured.** |
+| Shutting down | David found no start menu and no Shut Down button, and powered off by holding the power button. Not yet re-checked after Claude described where the button should be. |
+
+Start-up text photographed by David: `ACPI BIOS Error (bug): Could not resolve symbol [\_SB.UBTC.RUCC]`
+and `Aborting method \_SB.PC00.XHCI.RHUB.SS01._PLD` (and similar), at 1.3 to 2.0 seconds. These are
+faults in the Beelink's firmware tables for its USB ports; Claude judged them harmless and unrelated
+(general knowledge, not checked against a source).
+
+### What this shows, and what it does not
+
+- The Wayland session fails on this PC and the X11 session works. **Why Wayland fails is not known**;
+  no log was collected. The test machines have no real graphics hardware, which is why every
+  automated test passed. The failed automatic log-in is most likely the same fault (it starts the
+  Wayland session), but that is an inference.
+- Not checked on the Beelink: that the internal disk was read-only; that the installer offered only
+  the SSD; pictures and recordings in Gemma; Brave beyond a YouTube page opening; the Virus Scanner;
+  the app store; Tor Browser; BitLocker (David did not mention being asked for a key).

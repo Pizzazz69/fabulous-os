@@ -1,20 +1,20 @@
-# Fabulous OS: Brief, version 7
+# Fabulous OS: Brief, version 8
 
 **A Linux system with an offline AI assistant (Gemma 4), run from an external drive beside an untouched Windows PC**
 
-Prepared for David, 15 November 2026 (afternoon). The latest build is still build 12; nothing was built or tested on 15 November. This replaces brief version 6 of 14 November. Where the two disagree, this one wins. It is written so that a new Claude session can finish the project from it.
+Prepared for David, 16 November 2026. The latest build is still build 12; nothing was built on 16 November. On that day David ran build 12 on the real Beelink for the first time and installed it onto the SSD (section 2). This replaces brief version 7 of 15 November. Where the two disagree, this one wins. It is written so that a new Claude session can finish the project from it.
 
 ---
 
 ## 1. How to use this brief
 
-**For David.** Section 2 is where things stand. Section 9 is your step-by-step guide for trying build 12 on the Beelink; you can follow it without Claude. Section 7 is what remains.
+**For David.** Section 2 is where things stand. Section 9 is your guide to starting build 12 on the Beelink, with the two things you have to do by hand until the next build. Section 7 is what remains.
 
 **For Claude, in any later session.** You do not remember the earlier sessions. Do this, in order:
 
 1. Read this brief, then `DECISIONS.md` and `TESTING.md` in the repository `Pizzazz69/fabulous-os`.
 2. Read section 8 ("How a build works" and "Working notes for Claude"). It tells you how to see test results and what has already gone wrong, so you do not repeat it.
-3. Ask David whether the download of build 12 succeeded (it failed once on 15 November; see section 2), and what happened when he tried build 12 on the Beelink (section 9). **His report from the real PC outranks everything in this brief**, which rests on test machines only. Fix what he found before adding anything new.
+3. Read David's report of 16 November from the real Beelink (sections 2 and 6, and `TESTING.md`). **His reports from the real PC outrank the test machines.** Fix what he found (section 7, step A) before adding anything new, and ask him the questions still open there.
 4. Then work through section 7 in order.
 5. After each step tell David plainly what was tested, how, and what was not (non-negotiable 9). Record it in `TESTING.md` and `DECISIONS.md`, and update this brief under a new version number at the end of the session.
 
@@ -32,11 +32,13 @@ David is not a programmer. Write to him in plain words, explain any term you mus
 | Installer | Tested automatically: installs onto an external drive, which then starts by itself under Secure Boot. The internal disk was byte-for-byte unchanged. |
 | Protection | Every internal disk is read-only, both when started from the stick and (from build 12) on the installed system; the installer offers only external drives. |
 | Firewall, virus scanner, Secure Boot | Checked from inside the installed system. |
-| Tested on the Beelink | Not yet. Nothing has run on any real PC. |
-| Download of build 12 | **Not yet complete when this brief was written.** David's first download (15 November) ran for about 3 hours and ended "download failed" in Chrome, with no reason shown; the cause is not known. His PC's sleep settings were already "never". A second download was at 1.1 of 5.7 GB at 3.16 pm. He plans to do the rest of section 9 on 16 November. |
-| External SSD | Netac Portable SSD, 500 GB, USB 3.2; expected 14 November evening. Claude was not told on 15 November whether it arrived. |
+| Tested on the Beelink | **Yes, 16 November, by David.** The stick started under Secure Boot; he installed onto the Netac SSD; the SSD starts from the F7 menu; Gemma chats; Wi-Fi connects; Windows still starts normally. |
+| Fault found on the Beelink | **The desktop does not open by itself.** The default session type, "Plasma (Wayland)", fails on the Beelink, on the stick and on the SSD. Choosing "Plasma (X11)" on the log-in screen's "Desktop Session" button works. Why Wayland fails is not known. |
+| Also reported | No sound from a USB speaker in the stick session (not retried on the SSD). David could not find the start menu or a Shut Down button. |
+| Download of build 12 | Succeeded (5.69 GB zip) after the failure of 15 November. |
+| External SSD | Netac Portable SSD, 500 GB. Fabulous OS build 12 is installed on it. |
 | Stick | New 128 GB SD card in an SD-to-USB reader, ready. |
-| Gemma 4 | **Included from build 10; can look at pictures and listen to recordings from build 11.** Answers in test machines, including one shaped like the Beelink (no AVX, 16 GB). Speed on the real Beelink is unmeasured. |
+| Gemma 4 | **Included from build 10; can look at pictures and listen to recordings from build 11.** Answers in test machines, including one shaped like the Beelink (no AVX, 16 GB). On the real Beelink she loads and chats; David: slow, but faster than he can type. No times were measured. |
 | Office and creative apps | Not yet included (next step) |
 
 ---
@@ -114,7 +116,11 @@ Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows com
 
 ## 6. What is not done or not verified
 
-- **Nothing has run on the Beelink, a real external SSD, or a real Windows disk.** The test's "Windows" disk is a pretend one that cannot start; that Windows starts as before is argued from the disk being unchanged.
+- **The desktop does not open by itself on the Beelink** (16 November). The Wayland session fails there; X11 works. The cause is unknown: no log was collected, and the test machines, which have no real graphics hardware, all pass. That the automatic log-in on the stick fails for the same reason is an inference.
+- **Sound:** a USB speaker gave no sound in the stick session. Not retried on the SSD; cause not looked into.
+- **Start menu and Shut Down:** David found neither. The recipe puts the standard KDE start button at the left of the centred taskbar icons; whether it is missing or just not recognisable has not been established.
+- Not confirmed on the Beelink: that the installer offered only the SSD (David's answer described the F7 menu); that the internal disk was read-only; whether the SSD was plugged in when Windows started by itself; whether the installed system remembers the X11 choice; BitLocker.
+- Everything else in this list still rests on test machines only.
 - Not checked: that nothing is written to the PC's firmware memory during install.
 - **The image has not been tried on any PC other than test machines, and is not tied to the Beelink.** David may give it to his daughter. What Claude read in the code on 15 November (not run): the Gemma window uses the rules only to decide whether Gemma may run. She runs with 6 GB or more on a processor with AVX2, and with 12 GB or more on one without; below that the window says Gemma cannot run. The model is always the shipped E2B. The rules file still names the larger E4B for a PC with AVX2 and 12 GB or more; the window ignores that and runs E2B. Claude did not check whether any test machine covers that case.
 - **No typed confirmation** before the external drive is erased; only a yes/no question.
@@ -122,7 +128,7 @@ Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows com
 - Not tested: opening the Virus Scanner from the menu; the daily update pop-up; the "App Store" label; Brave in the stick session; Tor Browser; the app store itself.
 - Brave's privacy setting names are unchecked.
 - No LibreOffice, no creative apps.
-- **Gemma's speed on the Beelink is unmeasured.** The test machines hide AVX from a server processor whose cores are faster than the N5105's; they gave about 5 tokens (roughly 4 words) a second. Expect the Beelink to be slower than that; how much slower is not known.
+- **Gemma's speed on the Beelink is unmeasured** (David's impression on 16 November: slow but usable). The test machines hide AVX from a server processor whose cores are faster than the N5105's; they gave about 5 tokens (roughly 4 words) a second. Expect the Beelink to be slower than that; how much slower is not known.
 - Gemma took about 4½ minutes to load when started from the image in a test machine, and 20 seconds from the installed external test drive. Times from a real stick and a real SSD are unmeasured.
 - **Pictures are slow and not fully reliable.** On the no-AVX test machine the answer about a picture began after about 3 minutes; the Beelink will be slower. In every test Gemma described the test picture correctly but added a "22" that is not in it. Recordings took about 20 seconds and were written down correctly, but only one 4-second computer-voice sentence was tried on the build servers.
 - The "Add a picture…" and "Add a recording…" buttons were not clicked in any automated test. No real photograph and no human voice has been tried. There is no microphone button.
@@ -142,7 +148,16 @@ Decisions of 12 November stand (see `DECISIONS.md`), except "replace Windows com
 
 Done: the automated install test (13 November); Gemma 4 with pictures and recordings (14 November, builds 9 to 11); internal disks read-only on the installed system (build 12).
 
-**Step A. David tries build 12 on the Beelink** (section 9). This is the first run on real hardware. Claude: ask for his report and fix what it shows first. Things to ask him: did the stick start; screen, Wi-Fi, sound; did the installer offer only the SSD; did the SSD start from the F7 menu; how long Gemma takes to load and to answer on the real N5105; does Windows still start normally with the SSD unplugged. First ask whether the download finished. If it keeps failing, David does not want the image in several pieces (section 4); think of another way and put the choices to him.
+**Step A (new). Fix what the Beelink showed.** In order:
+
+1. **Make the desktop open by itself.** Make "Plasma (X11)" the session that starts, on the stick (automatic log-in, no password) and on the installed system. Ideas, none tried: set the session in the SDDM settings after Debian's live start-up scripts have written theirs (`/etc/sddm.conf` outranks `/etc/sddm.conf.d`); or do not offer the Wayland session at all. Check in a test machine that the stick still opens the desktop unaided and that the installed system's log-in starts X11, and add both to the automated tests (they should record the session type, `echo $XDG_SESSION_TYPE`). The real proof can only come from David on the Beelink. If David is willing, the reason Wayland fails could be read from the Beelink (Ctrl+Alt+F3, log in, `journalctl -b --no-pager | grep -i -E "kwin|plasma|sddm" | tail -25`, photograph); it is not required for the fix.
+2. **Start menu and Shut Down.** Ask David for a photograph of the taskbar. The Windows key should open the start menu; Sleep, Restart and Shut Down should be at its bottom right. Make the start button unmistakable if it is not.
+3. **Sound.** Ask David to retry on the SSD and to look at the loudspeaker icon by the clock for which output is selected.
+4. Ask David the unconfirmed points in section 6.
+
+David also asked on 16 November for a user called "Gemma 4" with password "OS4-Gemma" built in. Claude advised against a password in a public repository; a log-in name cannot contain spaces or capitals. He set his own name and password in the installer.
+
+**Step A (old, done 16 November). David tries build 12 on the Beelink** (section 9). This is the first run on real hardware. Claude: ask for his report and fix what it shows first. Things to ask him: did the stick start; screen, Wi-Fi, sound; did the installer offer only the SSD; did the SSD start from the F7 menu; how long Gemma takes to load and to answer on the real N5105; does Windows still start normally with the SSD unplugged. First ask whether the download finished. If it keeps failing, David does not want the image in several pieces (section 4); think of another way and put the choices to him.
 
 **Step B. Typed confirmation before erasing** (non-negotiable 3, not yet met). The installer (Calamares) asks only yes/no today. Add a screen where the person must type a word (for example ERASE) before the external drive is erased. Extend `tests/install-test.sh` to type it, and add a check that a wrong word does not start the install.
 
@@ -195,11 +210,20 @@ Claude can see the screenshots and logs (on the `test-results` branch), but cann
 - **Gemma and attachments.** The question must be sent before the picture or recording, or Gemma denies it can hear. Sampling is made less inventive when something is attached. Both are in `fabulous_gemma.py`; do not undo them without re-testing.
 - **Disk safety.** `fabulous-protect-internal` makes internal disks read-only in the stick session and on the installed system. Never weaken it without David's say-so. The install test must keep proving the internal disk is byte-for-byte unchanged.
 - **The image expires.** GitHub keeps each build's image for 14 days (build 12: until about 28 November 2026). If David needs it after that, start a new build.
+- **GitHub sign-in.** On 16 November `gh auth status` reported the workspace's token invalid. Reading the public repository worked. Check before promising a build; `gh run` commands need a working sign-in.
+- **The test machines cannot catch graphics faults.** They passed with the Wayland session that fails on the Beelink.
 - **David's time with Claude is limited.** Check on builds sparingly and keep messages short.
 
 ---
 
 ## 9. David's guide: trying build 12 on the Beelink
+
+**Until the next build, two things by hand (found 16 November):**
+
+- At any log-in screen, first move the mouse to **Desktop Session** at the bottom left and choose **Plasma (X11)**, then type the password. On the stick the user is `user` and the password is `live`; on the SSD they are the ones you chose in the installer.
+- To shut down: press the Windows key (or click the start button at the left of the icons in the middle of the taskbar) and look for Shut Down at the bottom right. If it is not there, tell Claude.
+
+The steps below are as written before the first try; you have now done them.
 
 You have: the Beelink with Windows; the 128 GB SD card in its USB reader (the "stick"); the Netac 500 GB external SSD. Nothing below can change the Beelink's internal disk: Fabulous OS makes it read-only. None of this has been tried on a real PC yet, so if anything differs from what is written here, stop and tell Claude.
 
@@ -301,6 +325,14 @@ Non-negotiable 4, as David clarified on 13 November: a daily check for updates w
 **Mistakes by Claude this session.** The 8 GB test machines (cost one build, about an hour). Gemma's "cannot run" message at first used the installer's wording ("will install without it"). The first build's saved copies of llama.cpp and the model were thrown away because a later test failed, so build 10 fetched and built them again.
 
 **Interrupted once.** David stopped the first llama.cpp build to say the project had gone back to the Beelink; the N5105 is the Beelink's processor, so nothing changed.
+
+### Session of 16 November 2026 (first run on the Beelink, no build)
+
+**David's report.** The download succeeded. The stick started but stopped at a log-in screen; David asked for a user name and password to be built in, or a rebuild. Claude found the stick's standard account (`user` / `live`) in the recipe; that did not get him in either. David photographed start-up text (firmware complaints, judged harmless) and the "Desktop Session" label. He then found the label was a button, chose "Plasma (X11)", and the desktop opened. He installed onto the Netac SSD, started from it (X11 again needed), chatted with Gemma, and Windows still starts. Details and what was not confirmed: `TESTING.md`.
+
+**David on Gemma.** Not as slow as feared, but he had expected more: she sees only what is typed and cannot read documents or write files. (The picture and recording buttons exist; he did not mention them. Documents are step D.)
+
+**Mistakes by Claude this session.** Claude told David the stick password would get him in before knowing why the desktop had not opened; it did not. Claude read the photographed "Desktop Session: Plasma (Wayland)" as proof the image held only one session type and said so; it was a button with two choices. The brief's section 9 promised a desktop "within a couple of minutes" on the strength of test machines with no real graphics hardware.
 
 ### Session of 15 November 2026 (no build)
 

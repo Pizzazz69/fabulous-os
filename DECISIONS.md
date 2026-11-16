@@ -114,3 +114,10 @@ Each entry: what was decided, why, and whether it has been verified.
 | **One Gemma for every PC: E2B only.** No larger model is added for stronger PCs; they run the same model faster. | David's decision. The people he may give the image to have ordinary home PCs with 16 GB, or 32 GB at most. | Read in the code, not run: the Gemma window uses the rules only to allow or refuse Gemma and always loads the shipped E2B. `rules/rules.yaml` still lists E4B; to be tidied. |
 | The image stays in one piece; it is not republished as several smaller files. | David's first download of build 12 failed after about 3 hours (cause unknown). He prefers to retry than to join pieces. | — |
 
+
+## Added 16 November 2026 (no build)
+
+| Decision | Reason | Verified? |
+| --- | --- | --- |
+| **The desktop session that starts is to be "Plasma (X11)", not "Plasma (Wayland)"**, on the stick and on the installed system. To be built. | On the real Beelink the Wayland session fails and X11 works (David, 16 November). | Not built, not tested. Why Wayland fails is unknown. |
+| No user name or password is built into the image beyond Debian's standard stick account. | A password in a public repository protects nothing. David chose his own in the installer. | — |
