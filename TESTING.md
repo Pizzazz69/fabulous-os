@@ -241,3 +241,5 @@ faults in the Beelink's firmware tables for its USB ports; Claude judged them ha
 - Not checked on the Beelink: that the internal disk was read-only; that the installer offered only
   the SSD; pictures and recordings in Gemma; Brave beyond a YouTube page opening; the Virus Scanner;
   the app store; Tor Browser; BitLocker (David did not mention being asked for a key).
+
+**Confirmed by David later on 16 November:** the installer listed only the Netac SSD as a place to install. The SSD was plugged in when Windows started by itself after the forced power-off, so the PC still prefers Windows unless F7 is used. David may not ask for another build; the X11 fix remains unbuilt.
